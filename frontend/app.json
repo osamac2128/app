@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "AISJ Connect",
+    "slug": "aisj-connect",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "aisj-connect",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
