@@ -4,7 +4,7 @@ from datetime import datetime
 from database import get_database
 from utils.auth import verify_password, get_password_hash, create_access_token
 from utils.dependencies import get_current_active_user
-from models.users import UserRole, UserStatus, UserCreate, User
+from models.users import UserRole, UserStatus, UserCreate, User, UserUpdate
 from bson import ObjectId
 import re
 
@@ -146,3 +146,31 @@ async def logout(current_user: dict = Depends(get_current_active_user)):
     # In a JWT system, logout is handled client-side by deleting the token
     # Optionally, you could maintain a token blacklist
     return {'message': 'Successfully logged out'}
+
+@router.put('/me', response_model=dict)
+async def update_profile(
+    update_data: UserUpdate,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Update current user profile."""
+    db = get_database()
+    
+    # Filter out None values
+    update_fields = {k: v for k, v in update_data.dict(exclude_unset=True).items() if v is not None}
+    
+    if not update_fields:
+        return current_user
+
+    update_fields['updated_at'] = datetime.utcnow()
+
+    await db.users.update_one(
+        {'_id': ObjectId(current_user['_id'])},
+        {'$set': update_fields}
+    )
+    
+    # Fetch updated user
+    updated_user = await db.users.find_one({'_id': ObjectId(current_user['_id'])})
+    updated_user['_id'] = str(updated_user['_id'])
+    updated_user.pop('password_hash', None)
+    
+    return updated_user

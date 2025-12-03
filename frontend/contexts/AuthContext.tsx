@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 interface User {
   _id: string;
@@ -22,6 +22,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -99,6 +100,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    try {
+      if (!token) throw new Error('Not authenticated');
+
+      const response = await axios.put(
+        `${API_URL}/api/auth/me`,
+        data,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const updatedUser = response.data;
+      await AsyncStorage.setItem('user_data', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    } catch (error: any) {
+      console.error('Update profile error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.detail || 'Update failed');
+    }
+  };
+
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('auth_token');
@@ -118,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         login,
         register,
+        updateProfile,
         logout,
         isAuthenticated: !!token && !!user,
       }}
