@@ -95,10 +95,10 @@ async def upload_photo(
 async def approve_photo(
     id_id: str,
     approved: bool,
-    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF))
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
 ):
     """Approve or reject a submitted photo (Admin/Staff only)."""
-    db = get_database()
     
     digital_id = await db.digital_ids.find_one({'_id': ObjectId(id_id)})
     if not digital_id:
