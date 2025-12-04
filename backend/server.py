@@ -49,6 +49,16 @@ async def health_check():
 
 # Include authentication routes
 api_router.include_router(auth.router)
+from routes import digital_ids
+api_router.include_router(digital_ids.router)
+from routes import passes
+api_router.include_router(passes.router)
+from routes import emergency
+api_router.include_router(emergency.router)
+from routes import notifications
+api_router.include_router(notifications.router)
+from routes import visitors
+api_router.include_router(visitors.router)
 
 # Include the router in the main app
 app.include_router(api_router)

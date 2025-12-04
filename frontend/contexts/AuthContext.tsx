@@ -1,39 +1,16 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import Constants from 'expo-constants';
-
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-
-interface User {
-  _id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: 'student' | 'parent' | 'staff' | 'admin';
-  phone?: string;
-  profile_photo_url?: string;
-  status: string;
-}
+import { authApi, User, RegisterRequest } from '../api/auth';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
-  first_name: string;
-  last_name: string;
-  role: 'student' | 'parent' | 'staff' | 'admin';
-  phone?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        // Optionally validate token or refresh user data here
       }
     } catch (error) {
       console.error('Error loading auth:', error);
@@ -65,12 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
-        email,
-        password,
-      });
-
-      const { access_token, user: userData } = response.data;
+      const { access_token, user: userData } = await authApi.login({ email, password });
 
       await AsyncStorage.setItem('auth_token', access_token);
       await AsyncStorage.setItem('user_data', JSON.stringify(userData));
@@ -83,11 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterRequest) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, data);
-
-      const { access_token, user: userData } = response.data;
+      const { access_token, user: userData } = await authApi.register(data);
 
       await AsyncStorage.setItem('auth_token', access_token);
       await AsyncStorage.setItem('user_data', JSON.stringify(userData));
@@ -104,15 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (!token) throw new Error('Not authenticated');
 
-      const response = await axios.put(
-        `${API_URL}/api/auth/me`,
-        data,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      const updatedUser = response.data;
+      const updatedUser = await authApi.updateProfile(data);
       await AsyncStorage.setItem('user_data', JSON.stringify(updatedUser));
       setUser(updatedUser);
     } catch (error: any) {
