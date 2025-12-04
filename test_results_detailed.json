@@ -1,0 +1,110 @@
+{
+  "authentication": {
+    "root_endpoint": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.347608",
+      "details": "AISJ Connect API",
+      "error": null
+    },
+    "health_check": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.359172",
+      "details": "healthy",
+      "error": null
+    },
+    "register": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.678161",
+      "details": "User ID: 69319ab032cc6934631593bb",
+      "error": null
+    },
+    "login": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.910492",
+      "details": "Token received: True",
+      "error": null
+    },
+    "get_current_user": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.929842",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    },
+    "update_profile": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.936550",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    },
+    "logout": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.942237",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    },
+    "invalid_login": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.982011",
+      "details": "Correctly rejected invalid credentials",
+      "error": "HTTP 401: Invalid email or password"
+    },
+    "no_auth_protection": {
+      "success": true,
+      "timestamp": "2025-12-04T14:29:04.987120",
+      "details": "Correctly rejected unauthenticated request",
+      "error": "HTTP 403: Not authenticated"
+    }
+  },
+  "digital_ids": {
+    "get_my_id": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.948396",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    },
+    "upload_photo": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.956481",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    }
+  },
+  "passes": {
+    "get_locations": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.963085",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    }
+  },
+  "notifications": {
+    "get_my_notifications": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.969232",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    }
+  },
+  "emergency": {
+    "get_active_alert": {
+      "success": false,
+      "timestamp": "2025-12-04T14:29:04.975266",
+      "details": null,
+      "error": "HTTP 500: Internal server error"
+    }
+  },
+  "summary": {
+    "passed": 6,
+    "failed": 8,
+    "errors": [
+      "authentication.get_current_user: HTTP 500: Internal server error",
+      "authentication.update_profile: HTTP 500: Internal server error",
+      "authentication.logout: HTTP 500: Internal server error",
+      "digital_ids.get_my_id: HTTP 500: Internal server error",
+      "digital_ids.upload_photo: HTTP 500: Internal server error",
+      "passes.get_locations: HTTP 500: Internal server error",
+      "notifications.get_my_notifications: HTTP 500: Internal server error",
+      "emergency.get_active_alert: HTTP 500: Internal server error"
+    ]
+  }
+}
