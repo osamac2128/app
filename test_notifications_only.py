@@ -26,10 +26,12 @@ def authenticate():
         print(f"❌ Authentication failed: {response.status_code} - {response.text}")
         return None
 
-def test_send_notification(headers):
-    """Test sending a notification"""
-    print("Testing: Send announcement to all users...")
+def test_all_scenarios(headers):
+    """Test all notification scenarios"""
+    results = []
     
+    # Scenario 1: Send announcement to all users
+    print("Scenario 1: Send announcement to all users...")
     notification_data = {
         "title": "School Assembly Tomorrow",
         "body": "All students and staff are required to attend the assembly at 9 AM tomorrow.",
@@ -38,17 +40,57 @@ def test_send_notification(headers):
     }
     
     response = requests.post(f"{BASE_URL}/notifications/send", json=notification_data, headers=headers)
-    
     print(f"Status: {response.status_code}")
-    print(f"Response: {response.text}")
     
     if response.status_code == 200:
         data = response.json()
         print(f"✅ SUCCESS: Notification sent with ID: {data.get('_id')}")
-        return data.get('_id')
+        results.append(("Scenario 1 - All Users", True, data.get('_id')))
     else:
         print(f"❌ FAILED: {response.text}")
-        return None
+        results.append(("Scenario 1 - All Users", False, response.text))
+    
+    # Scenario 2: Send urgent alert to students only
+    print("\nScenario 2: Send urgent alert to students...")
+    urgent_data = {
+        "title": "Class Cancelled",
+        "body": "Math class is cancelled today due to teacher absence.",
+        "type": "urgent",
+        "target_roles": ["student"]
+    }
+    
+    response = requests.post(f"{BASE_URL}/notifications/send", json=urgent_data, headers=headers)
+    print(f"Status: {response.status_code}")
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ SUCCESS: Urgent alert sent with ID: {data.get('_id')}")
+        results.append(("Scenario 2 - Students Only", True, data.get('_id')))
+    else:
+        print(f"❌ FAILED: {response.text}")
+        results.append(("Scenario 2 - Students Only", False, response.text))
+    
+    # Scenario 3: Send reminder to staff
+    print("\nScenario 3: Send reminder to staff...")
+    reminder_data = {
+        "title": "Staff Meeting Reminder",
+        "body": "Don't forget the staff meeting at 3 PM in the conference room.",
+        "type": "reminder",
+        "target_roles": ["staff"]
+    }
+    
+    response = requests.post(f"{BASE_URL}/notifications/send", json=reminder_data, headers=headers)
+    print(f"Status: {response.status_code}")
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ SUCCESS: Staff reminder sent with ID: {data.get('_id')}")
+        results.append(("Scenario 3 - Staff Only", True, data.get('_id')))
+    else:
+        print(f"❌ FAILED: {response.text}")
+        results.append(("Scenario 3 - Staff Only", False, response.text))
+    
+    return results
 
 def test_fetch_sent(headers):
     """Test fetching sent notifications"""
