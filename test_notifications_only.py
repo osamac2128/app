@@ -109,6 +109,45 @@ def test_fetch_sent(headers):
     else:
         print(f"❌ FAILED: {response.text}")
 
+def test_error_cases(headers):
+    """Test error cases"""
+    print("\n" + "="*50)
+    print("TESTING ERROR CASES")
+    print("="*50)
+    
+    # Test 1: Missing required fields
+    print("Error Test 1: Missing required fields...")
+    invalid_data = {
+        "type": "announcement"
+        # Missing title and body
+    }
+    
+    response = requests.post(f"{BASE_URL}/notifications/send", json=invalid_data, headers=headers)
+    print(f"Status: {response.status_code}")
+    
+    if response.status_code in [400, 422]:
+        print("✅ SUCCESS: Correctly rejected invalid data")
+    else:
+        print(f"❌ FAILED: Should have rejected invalid data but got {response.status_code}")
+    
+    # Test 2: Invalid authentication
+    print("\nError Test 2: Invalid authentication...")
+    headers_no_auth = {"Content-Type": "application/json"}
+    
+    valid_data = {
+        "title": "Test",
+        "body": "Test message",
+        "type": "general"
+    }
+    
+    response = requests.post(f"{BASE_URL}/notifications/send", json=valid_data, headers=headers_no_auth)
+    print(f"Status: {response.status_code}")
+    
+    if response.status_code == 401:
+        print("✅ SUCCESS: Correctly rejected unauthorized request")
+    else:
+        print(f"❌ FAILED: Should have rejected unauthorized request but got {response.status_code}")
+
 def main():
     print("🧪 Testing Admin Messages/Announcements API")
     print("=" * 50)
@@ -120,11 +159,33 @@ def main():
     
     print("✅ Authentication successful")
     
-    # Test sending notification
-    notification_id = test_send_notification(headers)
+    # Test all scenarios
+    results = test_all_scenarios(headers)
     
     # Test fetching sent notifications
     test_fetch_sent(headers)
+    
+    # Test error cases
+    test_error_cases(headers)
+    
+    # Summary
+    print("\n" + "="*50)
+    print("FINAL SUMMARY")
+    print("="*50)
+    
+    passed = sum(1 for _, success, _ in results if success)
+    total = len(results)
+    
+    print(f"Scenarios Passed: {passed}/{total}")
+    
+    for scenario, success, details in results:
+        status = "✅" if success else "❌"
+        print(f"{status} {scenario}")
+    
+    if passed == total:
+        print("\n🎉 ALL ADMIN MESSAGES/ANNOUNCEMENTS TESTS PASSED!")
+    else:
+        print(f"\n⚠️  {total - passed} test(s) failed.")
 
 if __name__ == "__main__":
     main()
