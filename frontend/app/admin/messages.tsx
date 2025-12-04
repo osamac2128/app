@@ -20,9 +20,9 @@ import axios from 'axios';
 interface Notification {
   _id: string;
   title: string;
-  message: string;
+  body: string; // Backend uses "body" not "message"
   type: string;
-  priority: string;
+  priority?: string; // Optional as backend doesn't have this field
   created_at: string;
   recipient_count?: number;
 }
