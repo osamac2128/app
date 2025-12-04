@@ -79,6 +79,15 @@ async def register(
         ConflictException: If email already registered
         ValidationException: If validation fails
     """
+    # Restrict admin role to specific emails only
+    SUPER_ADMIN_EMAILS = ['osama.chaudhry@gmail.com', 'ochaudhry@aisj.edu.sa']
+    
+    if request.role == UserRole.ADMIN:
+        if request.email.lower() not in SUPER_ADMIN_EMAILS:
+            raise ValidationException(
+                "Admin role is restricted. Only authorized super administrators can register with admin privileges."
+            )
+    
     # Register user through service
     user = await auth_service.register_user(
         email=request.email,
