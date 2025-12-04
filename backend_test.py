@@ -151,6 +151,337 @@ class AISJBackendTester:
         self.log_result("authentication", "health_check", success,
                        data.get('status') if success else None, error)
 
+    def test_admin_authentication(self):
+        """Test admin login for comprehensive admin testing"""
+        print("\n🔐 Testing Admin Authentication...")
+        
+        # Login as admin
+        success, data, error = self.make_request('POST', '/auth/login', 
+                                                self.admin_user, auth_required=False)
+        
+        if success:
+            self.admin_token = data.get('access_token')
+            
+        self.log_result("authentication", "admin_login", success, 
+                       f"Admin role: {data.get('user', {}).get('role')}" if success else None, error)
+        
+        return success
+
+    def test_staff_user_creation(self):
+        """Create and login staff user for approval workflow testing"""
+        print("\n👨‍🏫 Creating Staff User for Testing...")
+        
+        # Register staff user
+        success, data, error = self.make_request('POST', '/auth/register', 
+                                                self.staff_user, auth_required=False)
+        
+        if success:
+            self.created_resources['users'].append(self.staff_user['email'])
+            
+            # Login as staff
+            login_data = {
+                "email": self.staff_user["email"],
+                "password": self.staff_user["password"]
+            }
+            
+            success, data, error = self.make_request('POST', '/auth/login', 
+                                                    login_data, auth_required=False)
+            
+            if success:
+                self.staff_token = data.get('access_token')
+                
+        self.log_result("authentication", "staff_creation", success,
+                       f"Staff user: {self.staff_user['email']}" if success else None, error)
+        
+        return success
+
+    def test_admin_dashboard_stats(self):
+        """Test admin dashboard statistics"""
+        print("\n📊 Testing Admin Dashboard Stats...")
+        
+        if not self.admin_token:
+            self.log_result("admin_dashboard", "skipped", False, None, "No admin token available")
+            return
+        
+        # Get dashboard stats
+        success, data, error = self.make_request('GET', '/admin/dashboard/stats', auth_required=True)
+        if success:
+            expected_fields = ['total_users', 'active_passes_count', 'pending_id_approvals', 'today_activity']
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                details = f"Users: {data['total_users']}, Active passes: {data['active_passes_count']}"
+                self.log_result("admin_dashboard", "dashboard_stats", True, details, None)
+            else:
+                self.log_result("admin_dashboard", "dashboard_stats", False, None, f"Missing fields: {missing_fields}")
+        else:
+            self.log_result("admin_dashboard", "dashboard_stats", False, None, error)
+        
+        # Get pass analytics
+        success, data, error = self.make_request('GET', '/admin/analytics/passes', auth_required=True)
+        if success:
+            expected_fields = ['most_used_locations', 'average_duration_minutes', 'overtime_count']
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                details = f"Avg duration: {data['average_duration_minutes']}min, Overtime: {data['overtime_count']}"
+                self.log_result("admin_dashboard", "pass_analytics", True, details, None)
+            else:
+                self.log_result("admin_dashboard", "pass_analytics", False, None, f"Missing fields: {missing_fields}")
+        else:
+            self.log_result("admin_dashboard", "pass_analytics", False, None, error)
+        
+        # Get ID analytics
+        success, data, error = self.make_request('GET', '/admin/analytics/ids', auth_required=True)
+        if success:
+            expected_fields = ['total_ids_issued', 'pending_approvals', 'rejected_photos']
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                details = f"Total IDs: {data['total_ids_issued']}, Pending: {data['pending_approvals']}"
+                self.log_result("admin_dashboard", "id_analytics", True, details, None)
+            else:
+                self.log_result("admin_dashboard", "id_analytics", False, None, f"Missing fields: {missing_fields}")
+        else:
+            self.log_result("admin_dashboard", "id_analytics", False, None, error)
+
+    def test_admin_location_management(self):
+        """Test complete location CRUD operations"""
+        print("\n🏢 Testing Admin Location Management...")
+        
+        if not self.admin_token:
+            self.log_result("admin_locations", "skipped", False, None, "No admin token available")
+            return
+        
+        # Get all locations
+        success, data, error = self.make_request('GET', '/admin/locations/all?include_inactive=true', auth_required=True)
+        if success:
+            self.log_result("admin_locations", "get_all_locations", True, f"Found {len(data)} locations", None)
+        else:
+            self.log_result("admin_locations", "get_all_locations", False, None, error)
+            return
+        
+        # Create new location
+        test_location = {
+            "name": f"Test Location {datetime.now().strftime('%H%M%S')}",
+            "type": "classroom",
+            "default_time_limit_minutes": 10,
+            "requires_approval": True
+        }
+        
+        success, data, error = self.make_request('POST', '/admin/locations', test_location, auth_required=True)
+        if success and '_id' in data:
+            location_id = data['_id']
+            self.created_resources['locations'].append(location_id)
+            self.log_result("admin_locations", "create_location", True, f"Created: {data['name']}", None)
+            
+            # Update location
+            updated_data = {
+                "name": f"Updated {test_location['name']}",
+                "type": "classroom",
+                "default_time_limit_minutes": 15,
+                "requires_approval": False
+            }
+            
+            success, data, error = self.make_request('PUT', f'/admin/locations/{location_id}', updated_data, auth_required=True)
+            if success:
+                self.log_result("admin_locations", "update_location", True, f"Updated to: {data['name']}", None)
+                
+                # Deactivate location
+                success, data, error = self.make_request('DELETE', f'/admin/locations/{location_id}', auth_required=True)
+                if success:
+                    self.log_result("admin_locations", "deactivate_location", True, "Location deactivated", None)
+                else:
+                    self.log_result("admin_locations", "deactivate_location", False, None, error)
+            else:
+                self.log_result("admin_locations", "update_location", False, None, error)
+        else:
+            self.log_result("admin_locations", "create_location", False, None, error)
+
+    def test_admin_id_management(self):
+        """Test ID management endpoints"""
+        print("\n🆔 Testing Admin ID Management...")
+        
+        if not self.admin_token:
+            self.log_result("admin_ids", "skipped", False, None, "No admin token available")
+            return
+        
+        # Get pending ID approvals
+        success, data, error = self.make_request('GET', '/admin/ids/pending-approvals', auth_required=True)
+        if success:
+            self.log_result("admin_ids", "get_pending_approvals", True, f"Found {len(data)} pending approvals", None)
+        else:
+            self.log_result("admin_ids", "get_pending_approvals", False, None, error)
+        
+        # Get all IDs with filters
+        success, data, error = self.make_request('GET', '/admin/ids/all?status=active', auth_required=True)
+        if success:
+            self.log_result("admin_ids", "get_all_ids", True, f"Found {len(data)} active IDs", None)
+            
+            # If we have IDs, test toggle status on first one
+            if data and len(data) > 0:
+                id_id = data[0]['_id']
+                
+                success, toggle_data, error = self.make_request('PUT', f'/admin/ids/{id_id}/toggle-status', auth_required=True)
+                if success:
+                    self.log_result("admin_ids", "toggle_id_status", True, f"Status toggled: {toggle_data.get('message')}", None)
+                else:
+                    self.log_result("admin_ids", "toggle_id_status", False, None, error)
+        else:
+            self.log_result("admin_ids", "get_all_ids", False, None, error)
+
+    def test_pass_approval_workflow(self):
+        """Test complete pass approval workflow with staff user"""
+        print("\n📝 Testing Pass Approval Workflow...")
+        
+        if not self.staff_token:
+            self.log_result("admin_passes", "skipped", False, None, "No staff token available")
+            return
+        
+        # Get pending passes (staff token)
+        success, data, error = self.make_request('GET', '/passes/teacher/pending', auth_required=True)
+        if success:
+            self.log_result("admin_passes", "get_pending_passes", True, f"Found {len(data)} pending passes", None)
+            
+            # If we have pending passes, test approval
+            if data and len(data) > 0:
+                pass_id = data[0]['_id']
+                
+                success, approve_data, error = self.make_request('POST', f'/passes/approve/{pass_id}', auth_required=True)
+                if success:
+                    self.log_result("admin_passes", "approve_pass", True, "Pass approved successfully", None)
+                else:
+                    self.log_result("admin_passes", "approve_pass", False, None, error)
+        else:
+            self.log_result("admin_passes", "get_pending_passes", False, None, error)
+        
+        # Get overtime passes
+        success, data, error = self.make_request('GET', '/passes/overtime', auth_required=True)
+        if success:
+            self.log_result("admin_passes", "get_overtime_passes", True, f"Found {len(data)} overtime passes", None)
+            
+            # If we have overtime passes, test extension
+            if data and len(data) > 0:
+                pass_id = data[0]['_id']
+                extend_data = {"additional_minutes": 5}
+                
+                success, extend_response, error = self.make_request('POST', f'/passes/extend/{pass_id}', extend_data, auth_required=True)
+                if success:
+                    self.log_result("admin_passes", "extend_pass", True, f"Pass extended: {extend_response.get('message')}", None)
+                else:
+                    self.log_result("admin_passes", "extend_pass", False, None, error)
+        else:
+            self.log_result("admin_passes", "get_overtime_passes", False, None, error)
+        
+        # Test bulk approve (with empty list)
+        bulk_data = {"pass_ids": []}
+        success, data, error = self.make_request('POST', '/passes/bulk-approve', bulk_data, auth_required=True)
+        if success:
+            self.log_result("admin_passes", "bulk_approve_passes", True, "Bulk approve endpoint working", None)
+        else:
+            self.log_result("admin_passes", "bulk_approve_passes", False, None, error)
+
+    def test_emergency_system_comprehensive(self):
+        """Test complete emergency system end-to-end"""
+        print("\n🚨 Testing Emergency System Comprehensive...")
+        
+        if not self.admin_token:
+            self.log_result("emergency_system", "skipped", False, None, "No admin token available")
+            return
+        
+        # Check for active alert first
+        success, data, error = self.make_request('GET', '/emergency/active', auth_required=False)
+        if success:
+            self.log_result("emergency_system", "get_active_alert", True, f"Active alert: {data is not None}", None)
+        else:
+            self.log_result("emergency_system", "get_active_alert", False, None, error)
+        
+        # Trigger emergency alert
+        alert_data = {
+            "alert_type": "lockdown",
+            "severity": "high",
+            "title": "Test Lockdown Alert",
+            "message": "This is a comprehensive test lockdown alert for backend testing",
+            "scope": "school_wide"
+        }
+        
+        success, data, error = self.make_request('POST', '/emergency/trigger', alert_data, auth_required=True)
+        alert_id = None
+        if success and '_id' in data:
+            alert_id = data['_id']
+            self.created_resources['alerts'].append(alert_id)
+            self.log_result("emergency_system", "trigger_alert", True, f"Alert created: {data['title']}", None)
+            
+            # Check in to emergency
+            checkin_data = {
+                "alert_id": alert_id,
+                "status": "safe",
+                "location": "Admin Office"
+            }
+            
+            success, checkin_response, error = self.make_request('POST', '/emergency/check-in', checkin_data, auth_required=True)
+            if success:
+                self.log_result("emergency_system", "emergency_checkin", True, f"Checked in as: {checkin_response.get('status')}", None)
+            else:
+                self.log_result("emergency_system", "emergency_checkin", False, None, error)
+            
+            # Test reunification check-in
+            reunion_data = {
+                "alert_id": alert_id,
+                "parent_name": "John Doe Test Parent",
+                "station": "main"
+            }
+            
+            success, reunion_response, error = self.make_request('POST', '/emergency/reunification/check-in', reunion_data, auth_required=True)
+            if success:
+                self.log_result("emergency_system", "reunification_checkin", True, f"Parent checked in: {reunion_response.get('parent_name')}", None)
+            else:
+                self.log_result("emergency_system", "reunification_checkin", False, None, error)
+            
+            # Get reunification status
+            success, status_response, error = self.make_request('GET', f'/emergency/reunification/status/{alert_id}', auth_required=True)
+            if success:
+                details = f"Total students: {status_response.get('total_students')}, Checked-in parents: {status_response.get('checked_in_parents')}"
+                self.log_result("emergency_system", "reunification_status", True, details, None)
+            else:
+                self.log_result("emergency_system", "reunification_status", False, None, error)
+            
+            # Resolve emergency
+            success, resolve_response, error = self.make_request('POST', f'/emergency/resolve/{alert_id}', auth_required=True)
+            if success:
+                self.log_result("emergency_system", "resolve_emergency", True, "Emergency resolved successfully", None)
+            else:
+                self.log_result("emergency_system", "resolve_emergency", False, None, error)
+        else:
+            self.log_result("emergency_system", "trigger_alert", False, None, error)
+        
+        # Get emergency history
+        success, data, error = self.make_request('GET', '/emergency/history', auth_required=True)
+        if success:
+            self.log_result("emergency_system", "get_emergency_history", True, f"Found {len(data)} historical alerts", None)
+        else:
+            self.log_result("emergency_system", "get_emergency_history", False, None, error)
+        
+        # Schedule a drill
+        drill_data = {
+            "drill_type": "fire",
+            "scheduled_date": (datetime.utcnow() + timedelta(days=1)).isoformat() + "Z",
+            "notes": "Monthly fire drill - backend test"
+        }
+        
+        success, data, error = self.make_request('POST', '/emergency/drill/schedule', drill_data, auth_required=True)
+        if success:
+            self.log_result("emergency_system", "schedule_drill", True, f"Drill scheduled: {data.get('drill_type')}", None)
+        else:
+            self.log_result("emergency_system", "schedule_drill", False, None, error)
+        
+        # Get upcoming drills
+        success, data, error = self.make_request('GET', '/emergency/drill/upcoming', auth_required=True)
+        if success:
+            self.log_result("emergency_system", "get_upcoming_drills", True, f"Found {len(data)} upcoming drills", None)
+        else:
+            self.log_result("emergency_system", "get_upcoming_drills", False, None, error)
+
     def test_authentication_flow(self):
         """Test complete authentication flow"""
         print("\n🔐 Testing Authentication Flow...")
