@@ -8,8 +8,8 @@ import json
 
 # Configuration
 BASE_URL = "https://school-toolkit.preview.emergentagent.com/api"
-ADMIN_EMAIL = "ochaudhry@aisj.edu.sa"
-ADMIN_PASSWORD = "admin123"
+ADMIN_EMAIL = "osama.chaudhry@gmail.com"
+ADMIN_PASSWORD = "Test12345"
 
 def authenticate():
     """Get admin token"""
