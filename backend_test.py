@@ -831,6 +831,13 @@ class AISJBackendTester:
         self.test_digital_id_api()
         self.test_smart_pass_api()
         self.test_notifications_api()
+        
+        # Phase 6: Admin Messages/Announcements Testing (NEW FEATURE)
+        if self.admin_token:
+            self.test_admin_messages_announcements()
+        else:
+            print("⚠️  Skipping admin messages tests - admin authentication failed")
+        
         self.test_emergency_api()
         self.test_invalid_scenarios()
         
