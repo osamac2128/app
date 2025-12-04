@@ -29,7 +29,7 @@ class Period(BaseModel):
 
 class BellSchedule(BaseModel):
     """School bell schedule"""
-    _id: Optional[str] = Field(alias='_id', default=None)
+    id: Optional[str] = Field(default=None, alias='_id')
     name: str
     schedule_type: ScheduleType
     periods: List[Period]
