@@ -50,6 +50,16 @@ export default function RegisterScreen() {
       return false;
     }
 
+    // Validate admin role restriction
+    const SUPER_ADMIN_EMAILS = ['osama.chaudhry@gmail.com', 'ochaudhry@aisj.edu.sa'];
+    if (role === 'admin' && !SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+      Alert.alert(
+        'Admin Role Restricted',
+        'Admin role is restricted to authorized super administrators only. Please select a different role.'
+      );
+      return false;
+    }
+
     return true;
   };
 
