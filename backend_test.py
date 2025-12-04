@@ -717,10 +717,10 @@ class AISJBackendTester:
         
         end_time = time.time()
         
-        # Print summary
-        print("\n" + "=" * 60)
-        print("📊 TEST SUMMARY")
-        print("=" * 60)
+        # Print comprehensive summary
+        print("\n" + "=" * 80)
+        print("📊 COMPREHENSIVE BACKEND TEST SUMMARY - ADMIN FEATURES INCLUDED")
+        print("=" * 80)
         
         total_tests = self.test_results["summary"]["passed"] + self.test_results["summary"]["failed"]
         pass_rate = (self.test_results["summary"]["passed"] / total_tests * 100) if total_tests > 0 else 0
@@ -730,10 +730,42 @@ class AISJBackendTester:
         print(f"📈 Pass Rate: {pass_rate:.1f}%")
         print(f"⏱️  Duration: {end_time - start_time:.2f}s")
         
+        # Category breakdown
+        print(f"\n📋 CATEGORY BREAKDOWN:")
+        categories = ['authentication', 'admin_dashboard', 'admin_locations', 'admin_ids', 
+                     'admin_passes', 'emergency_system', 'digital_ids', 'passes', 'notifications', 'emergency']
+        
+        for category in categories:
+            if category in self.test_results:
+                category_tests = self.test_results[category]
+                passed = sum(1 for test in category_tests.values() if test.get('success', False))
+                total = len(category_tests)
+                if total > 0:
+                    print(f"   • {category.replace('_', ' ').title()}: {passed}/{total} ({passed/total*100:.0f}%)")
+        
         if self.test_results["summary"]["errors"]:
-            print("\n🔍 FAILED TESTS:")
+            print(f"\n🔍 FAILED TESTS ({len(self.test_results['summary']['errors'])}):")
             for error in self.test_results["summary"]["errors"]:
                 print(f"   • {error}")
+        
+        # Resource summary
+        if any(self.created_resources.values()):
+            print(f"\n🧹 TEST RESOURCES CREATED:")
+            for resource_type, resources in self.created_resources.items():
+                if resources:
+                    print(f"   • {resource_type}: {len(resources)} items")
+        
+        # Overall assessment
+        if pass_rate >= 90:
+            assessment = "🎉 EXCELLENT - All major admin features working"
+        elif pass_rate >= 75:
+            assessment = "✅ GOOD - Most admin features working, minor issues"
+        elif pass_rate >= 50:
+            assessment = "⚠️  NEEDS ATTENTION - Some admin features failing"
+        else:
+            assessment = "❌ CRITICAL ISSUES - Major admin functionality broken"
+        
+        print(f"\n🎯 OVERALL ASSESSMENT: {assessment}")
         
         # Save detailed results
         with open('/app/test_results_detailed.json', 'w') as f:
