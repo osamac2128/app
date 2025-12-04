@@ -101,6 +101,13 @@ class PassCreate(BaseModel):
     time_limit_minutes: int = 5
     notes: Optional[str] = None
 
+class PassRequest(BaseModel):
+    """API request model for creating a pass (student_id comes from auth)"""
+    origin_location_id: str
+    destination_location_id: str
+    time_limit_minutes: int = 5
+    notes: Optional[str] = None
+
 class PassUpdate(BaseModel):
     status: Optional[PassStatus] = None
     approved_at: Optional[datetime] = None
