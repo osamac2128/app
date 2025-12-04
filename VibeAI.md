@@ -37,11 +37,14 @@ This document provides a comprehensive overview of the AISJ Connect (CommElite) 
 -   `VibeAI.md`: This guide.
 
 ### Backend Structure (`backend/`)
--   `server.py`: Application entry point and configuration.
--   `database.py`: MongoDB connection logic.
--   `routes/`: API route handlers (separated by module).
--   `models/`: Pydantic data models.
--   `utils/`: Helper functions (auth, hashing, etc.).
+-   `app/`: Main application source code.
+    -   `core/`: Configuration and core utilities.
+    -   `models/`: Pydantic data models.
+    -   `routers/`: API route handlers.
+    -   `services/`: Business logic services.
+-   `tests/`: Backend tests.
+-   `server.py`: Application entry point (legacy wrapper).
+-   `database.py`: MongoDB connection logic (legacy wrapper).
 -   `requirements.txt`: Python dependencies.
 
 ### Frontend Structure (`frontend/`)
@@ -49,7 +52,8 @@ This document provides a comprehensive overview of the AISJ Connect (CommElite) 
     -   `(tabs)/`: Main tab navigation.
     -   `_layout.tsx`: Root layout.
     -   `index.tsx`: Entry screen.
--   `components/`: Reusable UI components (create if needed).
+-   `api/`: Centralized API client and modules.
+-   `components/`: Reusable UI components.
 -   `contexts/`: React Context providers.
 -   `assets/`: Static assets (images, fonts).
 -   `package.json`: JS dependencies and scripts.
