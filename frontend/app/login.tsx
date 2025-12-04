@@ -114,85 +114,88 @@ export default function LoginScreen() {
   );
 }
 
-              const styles = StyleSheet.create({
-                container: {
-                flex: 1,
-              backgroundColor: '#FFFFFF',
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-              content: {
-                flexGrow: 1,
-              justifyContent: 'center',
-              padding: 24,
+  container: {
+    flex: 1,
   },
-              header: {
-                marginBottom: 48,
-              alignItems: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
   },
-              title: {
-                fontSize: 32,
-              fontWeight: 'bold',
-              color: '#1E3A5F',
-              marginBottom: 8,
-              textAlign: 'center',
+  header: {
+    marginBottom: 48,
+    alignItems: 'center',
   },
-              subtitle: {
-                fontSize: 16,
-              color: '#6B7280',
-              marginBottom: 32,
-              textAlign: 'center',
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1E3A5F',
+    marginBottom: 8,
+    textAlign: 'center',
   },
-              form: {
-                width: '100%',
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
   },
-              inputContainer: {
-                marginBottom: 16,
+  form: {
+    width: '100%',
   },
-              label: {
-                fontSize: 14,
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: 8,
+  inputGroup: {
+    marginBottom: 16,
   },
-              input: {
-                backgroundColor: '#F9FAFB',
-              borderWidth: 1,
-              borderColor: '#D1D5DB',
-              borderRadius: 8,
-              padding: 12,
-              fontSize: 16,
-              color: '#1F2937',
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
-              button: {
-                backgroundColor: '#1E3A5F',
-              padding: 16,
-              borderRadius: 8,
-              alignItems: 'center',
-              marginTop: 24,
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1F2937',
   },
-              buttonText: {
-                color: '#FFFFFF',
-              fontSize: 16,
-              fontWeight: 'bold',
+  button: {
+    backgroundColor: '#1E3A5F',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 24,
   },
-              secondaryButton: {
-                padding: 16,
-              alignItems: 'center',
-              marginTop: 8,
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-              secondaryButtonText: {
-                color: '#1E3A5F',
-              fontSize: 16,
-              fontWeight: '600',
+  secondaryButton: {
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
   },
-              visitorButton: {
-                padding: 16,
-              alignItems: 'center',
-              marginTop: 8,
-              borderTopWidth: 1,
-              borderTopColor: '#E5E7EB',
+  secondaryButtonText: {
+    color: '#1E3A5F',
+    fontSize: 16,
+    fontWeight: '600',
   },
-              visitorButtonText: {
-                color: '#6B7280',
-              fontSize: 14,
+  visitorButton: {
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 16,
+  },
+  visitorButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
   },
 });
