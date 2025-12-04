@@ -14,9 +14,8 @@ from bson import ObjectId
 router = APIRouter(prefix='/emergency', tags=['Emergency'])
 
 @router.get('/active', response_model=Optional[EmergencyAlert])
-async def get_active_alert(current_user: dict = Depends(get_current_active_user)):
+async def get_active_alert(current_user: dict = Depends(get_current_active_user), db = Depends(get_database)):
     """Check for any currently active emergency alert."""
-    db = get_database()
     active_alert = await db.emergency_alerts.find_one({
         'resolved_at': None
     })
