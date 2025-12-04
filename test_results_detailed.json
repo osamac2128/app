@@ -2,55 +2,55 @@
   "authentication": {
     "root_endpoint": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.239368",
+      "timestamp": "2025-12-04T14:32:34.860648",
       "details": "AISJ Connect API",
       "error": null
     },
     "health_check": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.285431",
+      "timestamp": "2025-12-04T14:32:34.867996",
       "details": "healthy",
       "error": null
     },
     "register": {
       "success": false,
-      "timestamp": "2025-12-04T14:32:14.298696",
+      "timestamp": "2025-12-04T14:32:34.916221",
       "details": null,
       "error": "HTTP 409: Email already registered"
     },
     "login": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.591173",
+      "timestamp": "2025-12-04T14:32:35.146683",
       "details": "Token received: True",
       "error": null
     },
     "get_current_user": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.601557",
+      "timestamp": "2025-12-04T14:32:35.155083",
       "details": "User: Sarah Updated Johnson",
       "error": null
     },
     "update_profile": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.651379",
+      "timestamp": "2025-12-04T14:32:35.204081",
       "details": "Updated name: Sarah Updated",
       "error": null
     },
     "logout": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.660227",
+      "timestamp": "2025-12-04T14:32:35.210714",
       "details": "Successfully logged out",
       "error": null
     },
     "invalid_login": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.848351",
+      "timestamp": "2025-12-04T14:32:35.437313",
       "details": "Correctly rejected invalid credentials",
       "error": "HTTP 401: Invalid email or password"
     },
     "no_auth_protection": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.857685",
+      "timestamp": "2025-12-04T14:32:35.442660",
       "details": "Correctly rejected unauthenticated request",
       "error": "HTTP 403: Not authenticated"
     }
@@ -58,13 +58,13 @@
   "digital_ids": {
     "get_my_id": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.666266",
+      "timestamp": "2025-12-04T14:32:35.217166",
       "details": "QR Code: AISJ:69319ab032cc693...",
       "error": null
     },
     "upload_photo": {
       "success": false,
-      "timestamp": "2025-12-04T14:32:14.671360",
+      "timestamp": "2025-12-04T14:32:35.264367",
       "details": null,
       "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     }
@@ -72,25 +72,25 @@
   "passes": {
     "get_locations": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.677404",
+      "timestamp": "2025-12-04T14:32:35.270712",
       "details": "Found 6 locations",
       "error": null
     },
     "request_pass": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.734286",
-      "details": "Pass ID: 69319b6e5ca93fc6a29f6a4d",
+      "timestamp": "2025-12-04T14:32:35.279888",
+      "details": "Pass ID: 69319b835ca93fc6a29f6a4e",
       "error": null
     },
     "get_active_pass": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.741216",
-      "details": "Active pass: 69319b6e5ca93fc6a29f6a4d",
+      "timestamp": "2025-12-04T14:32:35.327400",
+      "details": "Active pass: 69319b835ca93fc6a29f6a4e",
       "error": null
     },
     "end_pass": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.747533",
+      "timestamp": "2025-12-04T14:32:35.334938",
       "details": "Pass ended: completed",
       "error": null
     }
@@ -98,7 +98,7 @@
   "notifications": {
     "get_my_notifications": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.794136",
+      "timestamp": "2025-12-04T14:32:35.382246",
       "details": "Found 0 notifications",
       "error": null
     }
@@ -106,7 +106,7 @@
   "emergency": {
     "get_active_alert": {
       "success": true,
-      "timestamp": "2025-12-04T14:32:14.842521",
+      "timestamp": "2025-12-04T14:32:35.389784",
       "details": "Active alert: False",
       "error": null
     }
