@@ -90,23 +90,60 @@ export default function AdminMessagesScreen() {
     setSending(true);
     
     try {
-      // For now, we'll show a success message
-      // In production, this would call the actual broadcast API
-      Alert.alert(
-        'Message Sent',
-        `Your ${formData.type} has been sent to ${formData.target === 'all' ? 'all users' : formData.target}.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowComposeModal(false);
-              fetchNotifications();
-            },
-          },
-        ]
+      // Map frontend target to backend target_roles
+      let target_roles = null;
+      if (formData.target !== 'all') {
+        // Map target to role format expected by backend
+        const roleMap: any = {
+          'students': 'student',
+          'parents': 'parent',
+          'staff': 'staff'
+        };
+        target_roles = [roleMap[formData.target]];
+      }
+
+      // Map frontend type to backend NotificationType enum
+      const typeMap: any = {
+        'announcement': 'announcement',
+        'alert': 'urgent',
+        'reminder': 'reminder',
+        'info': 'general'
+      };
+
+      const notificationData = {
+        title: formData.title,
+        body: formData.message, // Backend uses "body" not "message"
+        type: typeMap[formData.type],
+        target_roles: target_roles,
+        created_by: '' // Will be set by backend from token
+      };
+
+      const response = await axios.post(
+        `${API_URL}/api/notifications/send`,
+        notificationData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
+      if (response.status === 200) {
+        Alert.alert(
+          'Message Sent',
+          `Your ${formData.type} has been sent to ${formData.target === 'all' ? 'all users' : formData.target}.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setShowComposeModal(false);
+                fetchNotifications();
+              },
+            },
+          ]
+        );
+      }
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to send message');
+      console.error('Error sending notification:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'Failed to send message');
     } finally {
       setSending(false);
     }
