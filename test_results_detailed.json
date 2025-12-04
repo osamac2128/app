@@ -2,67 +2,67 @@
   "authentication": {
     "root_endpoint": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.055090",
+      "timestamp": "2025-12-04T19:39:32.047435",
       "details": "AISJ Connect API",
       "error": null
     },
     "health_check": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.067274",
+      "timestamp": "2025-12-04T19:39:32.096860",
       "details": "healthy",
       "error": null
     },
     "admin_login": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.363753",
+      "timestamp": "2025-12-04T19:39:32.333633",
       "details": "Admin role: admin",
       "error": null
     },
     "staff_creation": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.831781",
-      "details": "Staff user: teacher_20251204_185128@test.com",
+      "timestamp": "2025-12-04T19:39:32.852634",
+      "details": "Staff user: teacher_20251204_193931@test.com",
       "error": null
     },
     "register": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:30.281379",
+      "timestamp": "2025-12-04T19:39:33.444057",
       "details": null,
       "error": "HTTP 409: Email already registered"
     },
     "login": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.554993",
+      "timestamp": "2025-12-04T19:39:33.676249",
       "details": "Token received: True",
       "error": null
     },
     "get_current_user": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.567643",
+      "timestamp": "2025-12-04T19:39:33.685172",
       "details": "User: Sarah Updated Johnson",
       "error": null
     },
     "update_profile": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.578158",
+      "timestamp": "2025-12-04T19:39:33.694752",
       "details": "Updated name: Sarah Updated",
       "error": null
     },
     "logout": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.627475",
+      "timestamp": "2025-12-04T19:39:33.744268",
       "details": "Successfully logged out",
       "error": null
     },
     "invalid_login": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.864760",
+      "timestamp": "2025-12-04T19:39:34.167530",
       "details": "Correctly rejected invalid credentials",
       "error": "HTTP 401: Invalid email or password"
     },
     "no_auth_protection": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:30.872495",
+      "timestamp": "2025-12-04T19:39:34.217600",
       "details": "Should have failed",
       "error": "Protected endpoint allowed access without auth"
     }
@@ -70,45 +70,45 @@
   "admin_dashboard": {
     "dashboard_stats": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.844361",
-      "details": "Users: {'student': 2, 'parent': 0, 'staff': 1, 'admin': 2}, Active passes: 0",
+      "timestamp": "2025-12-04T19:39:32.889583",
+      "details": "Users: {'student': 3, 'parent': 0, 'staff': 2, 'admin': 2}, Active passes: 0",
       "error": null
     },
     "pass_analytics": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.861775",
+      "timestamp": "2025-12-04T19:39:32.959509",
       "details": "Avg duration: 0.0min, Overtime: 0",
       "error": null
     },
     "id_analytics": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.912825",
-      "details": "Total IDs: 2, Pending: 2",
+      "timestamp": "2025-12-04T19:39:32.973563",
+      "details": "Total IDs: 1, Pending: 2",
       "error": null
     }
   },
   "admin_locations": {
     "get_all_locations": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.927387",
-      "details": "Found 6 locations",
+      "timestamp": "2025-12-04T19:39:32.983806",
+      "details": "Found 7 locations",
       "error": null
     },
     "create_location": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.945452",
-      "details": "Created: Test Location 185129",
+      "timestamp": "2025-12-04T19:39:33.057796",
+      "details": "Created: Test Location 193932",
       "error": null
     },
     "update_location": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:29.996146",
-      "details": "Updated to: Updated Test Location 185129",
+      "timestamp": "2025-12-04T19:39:33.067444",
+      "details": "Updated to: Updated Test Location 193932",
       "error": null
     },
     "deactivate_location": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:29.996177",
+      "timestamp": "2025-12-04T19:39:33.067479",
       "details": null,
       "error": "Unsupported method: DELETE"
     }
@@ -116,39 +116,39 @@
   "admin_ids": {
     "get_pending_approvals": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.008902",
+      "timestamp": "2025-12-04T19:39:33.076447",
       "details": "Found 1 pending approvals",
       "error": null
     },
     "get_all_ids": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.059453",
-      "details": "Found 2 active IDs",
+      "timestamp": "2025-12-04T19:39:33.127505",
+      "details": "Found 1 active IDs",
       "error": null
     },
     "toggle_id_status": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.110604",
+      "timestamp": "2025-12-04T19:39:33.187984",
       "details": "Status toggled: Digital ID deactivated successfully",
       "error": null
     }
   },
   "admin_passes": {
     "get_pending_passes": {
-      "success": false,
-      "timestamp": "2025-12-04T18:51:30.134731",
-      "details": null,
-      "error": "HTTP 500: Internal server error"
+      "success": true,
+      "timestamp": "2025-12-04T19:39:33.199354",
+      "details": "Found 0 pending passes",
+      "error": null
     },
     "get_overtime_passes": {
-      "success": false,
-      "timestamp": "2025-12-04T18:51:30.144981",
-      "details": null,
-      "error": "HTTP 500: Internal server error"
+      "success": true,
+      "timestamp": "2025-12-04T19:39:33.208918",
+      "details": "Found 0 overtime passes",
+      "error": null
     },
     "bulk_approve_passes": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:30.154802",
+      "timestamp": "2025-12-04T19:39:33.258437",
       "details": null,
       "error": "HTTP 422: [{'type': 'list_type', 'loc': ['body'], 'msg': 'Input should be a valid list', 'input': {'pass_ids': []}, 'url': 'https://errors.pydantic.dev/2.12/v/list_type'}]"
     }
@@ -156,31 +156,31 @@
   "emergency_system": {
     "get_active_alert": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:30.203534",
+      "timestamp": "2025-12-04T19:39:33.267327",
       "details": null,
       "error": "HTTP 403: Not authenticated"
     },
     "trigger_alert": {
       "success": false,
-      "timestamp": "2025-12-04T18:51:30.212856",
+      "timestamp": "2025-12-04T19:39:33.317502",
       "details": null,
       "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'type'], 'msg': 'Field required', 'input': {'alert_type': 'lockdown', 'severity': 'high', 'title': 'Test Lockdown Alert', 'message': 'This is a comprehensive test lockdown alert for backend testing', 'scope': 'school_wide'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'triggered_by'], 'msg': 'Field required', 'input': {'alert_type': 'lockdown', 'severity': 'high', 'title': 'Test Lockdown Alert', 'message': 'This is a comprehensive test lockdown alert for backend testing', 'scope': 'school_wide'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     },
     "get_emergency_history": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.222378",
+      "timestamp": "2025-12-04T19:39:33.326429",
       "details": "Found 0 historical alerts",
       "error": null
     },
     "schedule_drill": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.262503",
+      "timestamp": "2025-12-04T19:39:33.383349",
       "details": "Drill scheduled: fire",
       "error": null
     },
     "get_upcoming_drills": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.271779",
+      "timestamp": "2025-12-04T19:39:33.393249",
       "details": "Found 0 upcoming drills",
       "error": null
     }
@@ -188,13 +188,13 @@
   "digital_ids": {
     "get_my_id": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.638023",
+      "timestamp": "2025-12-04T19:39:33.761617",
       "details": "QR Code: AISJ:69319ab032cc693...",
       "error": null
     },
     "upload_photo": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.684400",
+      "timestamp": "2025-12-04T19:39:33.806553",
       "details": "Status: pending",
       "error": null
     }
@@ -202,25 +202,25 @@
   "passes": {
     "get_locations": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.693716",
-      "details": "Found 7 locations",
+      "timestamp": "2025-12-04T19:39:33.816939",
+      "details": "Found 8 locations",
       "error": null
     },
     "request_pass": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.736384",
-      "details": "Pass ID: 6931d832794cf3492d49aeb8",
+      "timestamp": "2025-12-04T19:39:33.851464",
+      "details": "Pass ID: 6931e375eb6d5c0d41b4fe86",
       "error": null
     },
     "get_active_pass": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.786040",
-      "details": "Active pass: 6931d832794cf3492d49aeb8",
+      "timestamp": "2025-12-04T19:39:33.903192",
+      "details": "Active pass: 6931e375eb6d5c0d41b4fe86",
       "error": null
     },
     "end_pass": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.795662",
+      "timestamp": "2025-12-04T19:39:33.914453",
       "details": "Pass ended: completed",
       "error": null
     }
@@ -228,30 +228,68 @@
   "notifications": {
     "get_my_notifications": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.805939",
+      "timestamp": "2025-12-04T19:39:33.971398",
       "details": "Found 0 notifications",
       "error": null
+    },
+    "send_announcement_all_users": {
+      "success": false,
+      "timestamp": "2025-12-04T19:39:33.979907",
+      "details": null,
+      "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'School Assembly Tomorrow', 'body': 'All students and staff are required to attend the assembly at 9 AM tomorrow.', 'type': 'announcement', 'target_roles': None}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
+    },
+    "send_urgent_students": {
+      "success": false,
+      "timestamp": "2025-12-04T19:39:34.029275",
+      "details": null,
+      "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'Class Cancelled', 'body': 'Math class is cancelled today due to teacher absence.', 'type': 'urgent', 'target_roles': ['student']}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
+    },
+    "send_reminder_staff": {
+      "success": false,
+      "timestamp": "2025-12-04T19:39:34.037770",
+      "details": null,
+      "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'Staff Meeting Reminder', 'body': \"Don't forget the staff meeting at 3 PM in the conference room.\", 'type': 'reminder', 'target_roles': ['staff']}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
+    },
+    "fetch_sent_notifications": {
+      "success": true,
+      "timestamp": "2025-12-04T19:39:34.087193",
+      "details": "Retrieved 0 sent notifications. Has recipient counts: False",
+      "error": null
+    },
+    "validation_missing_fields": {
+      "success": true,
+      "timestamp": "2025-12-04T19:39:34.099463",
+      "details": "Correctly rejected notification with missing fields",
+      "error": null
+    },
+    "unauthorized_access": {
+      "success": false,
+      "timestamp": "2025-12-04T19:39:34.150470",
+      "details": null,
+      "error": "Should have rejected unauthorized request"
     }
   },
   "emergency": {
     "get_active_alert": {
       "success": true,
-      "timestamp": "2025-12-04T18:51:30.856569",
+      "timestamp": "2025-12-04T19:39:34.159506",
       "details": "Active alert: False",
       "error": null
     }
   },
   "summary": {
-    "passed": 29,
-    "failed": 8,
+    "passed": 33,
+    "failed": 10,
     "errors": [
       "admin_locations.deactivate_location: Unsupported method: DELETE",
-      "admin_passes.get_pending_passes: HTTP 500: Internal server error",
-      "admin_passes.get_overtime_passes: HTTP 500: Internal server error",
       "admin_passes.bulk_approve_passes: HTTP 422: [{'type': 'list_type', 'loc': ['body'], 'msg': 'Input should be a valid list', 'input': {'pass_ids': []}, 'url': 'https://errors.pydantic.dev/2.12/v/list_type'}]",
       "emergency_system.get_active_alert: HTTP 403: Not authenticated",
       "emergency_system.trigger_alert: HTTP 422: [{'type': 'missing', 'loc': ['body', 'type'], 'msg': 'Field required', 'input': {'alert_type': 'lockdown', 'severity': 'high', 'title': 'Test Lockdown Alert', 'message': 'This is a comprehensive test lockdown alert for backend testing', 'scope': 'school_wide'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'triggered_by'], 'msg': 'Field required', 'input': {'alert_type': 'lockdown', 'severity': 'high', 'title': 'Test Lockdown Alert', 'message': 'This is a comprehensive test lockdown alert for backend testing', 'scope': 'school_wide'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
       "authentication.register: HTTP 409: Email already registered",
+      "notifications.send_announcement_all_users: HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'School Assembly Tomorrow', 'body': 'All students and staff are required to attend the assembly at 9 AM tomorrow.', 'type': 'announcement', 'target_roles': None}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
+      "notifications.send_urgent_students: HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'Class Cancelled', 'body': 'Math class is cancelled today due to teacher absence.', 'type': 'urgent', 'target_roles': ['student']}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
+      "notifications.send_reminder_staff: HTTP 422: [{'type': 'missing', 'loc': ['body', 'created_by'], 'msg': 'Field required', 'input': {'title': 'Staff Meeting Reminder', 'body': \"Don't forget the staff meeting at 3 PM in the conference room.\", 'type': 'reminder', 'target_roles': ['staff']}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
+      "notifications.unauthorized_access: Should have rejected unauthorized request",
       "authentication.no_auth_protection: Protected endpoint allowed access without auth"
     ]
   }
