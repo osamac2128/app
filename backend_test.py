@@ -78,11 +78,8 @@ class AISJBackendTester:
                 response = self.session.get(url, headers=headers)
             elif method.upper() == 'POST':
                 if files:
-                    # Remove Content-Type for file uploads
-                    session_headers = self.session.headers.copy()
-                    if 'Content-Type' in session_headers:
-                        del session_headers['Content-Type']
-                    response = self.session.post(url, data=data, files=files, headers={**session_headers, **headers})
+                    # For file uploads, don't use session headers that might interfere
+                    response = requests.post(url, files=files, headers=headers)
                 else:
                     response = self.session.post(url, json=data, headers=headers)
             elif method.upper() == 'PUT':
