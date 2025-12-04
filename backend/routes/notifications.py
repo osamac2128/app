@@ -61,6 +61,40 @@ async def get_my_notifications(
         
     return notifications
 
+@router.get('/sent', response_model=List[Notification])
+async def get_sent_notifications(
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Fetch notifications sent by the current user."""
+    user_id = str(current_user['_id'])
+    
+    # Fetch all notifications created by this user
+    notifications = await db.notifications.find({
+        'created_by': user_id,
+        'status': NotificationStatus.SENT
+    }).sort('created_at', -1).to_list(length=100)
+    
+    # Convert ObjectId to string and calculate recipient counts
+    for n in notifications:
+        n['_id'] = str(n['_id'])
+        
+        # Calculate recipient count based on target_roles
+        if n.get('target_roles'):
+            # Count users with those roles
+            recipient_count = 0
+            for role in n['target_roles']:
+                count = await db.users.count_documents({'role': role, 'status': 'active'})
+                recipient_count += count
+            n['recipient_count'] = recipient_count
+        elif n.get('target_user_ids'):
+            n['recipient_count'] = len(n['target_user_ids'])
+        else:
+            # All users
+            n['recipient_count'] = await db.users.count_documents({'status': 'active'})
+    
+    return notifications
+
 @router.post('/mark-read/{notification_id}')
 async def mark_read(
     notification_id: str,
