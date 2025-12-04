@@ -96,13 +96,25 @@ class AISJBackendTester:
             print(f"   Details: {details}")
 
     def make_request(self, method: str, endpoint: str, data: Dict = None, files: Dict = None, 
-                    auth_required: bool = True) -> tuple[bool, Any, str]:
+                    auth_required: bool = True, use_admin_token: bool = False, use_staff_token: bool = False) -> tuple[bool, Any, str]:
         """Make HTTP request with error handling"""
         url = f"{self.base_url}{endpoint}"
         headers = {}
         
-        if auth_required and self.auth_token:
-            headers['Authorization'] = f'Bearer {self.auth_token}'
+        # Determine which token to use
+        token = None
+        if auth_required:
+            if use_admin_token and self.admin_token:
+                token = self.admin_token
+            elif use_staff_token and self.staff_token:
+                token = self.staff_token
+            elif self.auth_token:
+                token = self.auth_token
+            elif self.admin_token:  # Fallback to admin token if available
+                token = self.admin_token
+        
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
             
         try:
             if method.upper() == 'GET':
