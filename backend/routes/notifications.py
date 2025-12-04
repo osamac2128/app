@@ -38,10 +38,10 @@ async def send_notification(
 
 @router.get('/my-notifications', response_model=List[Notification])
 async def get_my_notifications(
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    db = Depends(get_database)
 ):
     """Fetch notifications for the current user."""
-    db = get_database()
     user_role = current_user['role']
     user_id = str(current_user['_id'])
     
