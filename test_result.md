@@ -333,6 +333,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ Emergency API working correctly. GET /active returns null when no active alerts (expected behavior). All emergency endpoints properly handle database operations. Fixed database dependency injection across all emergency routes."
+  
+  - task: "Admin Messages/Announcements API"
+    implemented: true
+    working: "NA"
+    file: "backend/routes/notifications.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added new endpoint GET /api/notifications/sent for admins to fetch their sent notifications with recipient count calculation. Updated existing POST /api/notifications/send endpoint (already existed). Ready for testing to verify: 1) Sending notifications works with proper role mapping 2) Fetching sent notifications returns correct data 3) Recipient count calculation is accurate."
 
 frontend:
   - task: "Login Screen"
