@@ -488,7 +488,7 @@ class AISJBackendTester:
             self.log_result("emergency_system", "schedule_drill", False, None, error)
         
         # Get upcoming drills
-        success, data, error = self.make_request('GET', '/emergency/drill/upcoming', use_staff_token=True if self.staff_token else use_admin_token=True)
+        success, data, error = self.make_request('GET', '/emergency/drill/upcoming', use_staff_token=bool(self.staff_token), use_admin_token=not bool(self.staff_token))
         if success:
             self.log_result("emergency_system", "get_upcoming_drills", True, f"Found {len(data)} upcoming drills", None)
         else:
