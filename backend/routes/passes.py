@@ -344,7 +344,8 @@ async def extend_pass(
     pass_id: str,
     additional_minutes: int,
     current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
-    pass_service: PassService = Depends(get_pass_service)
+    pass_service: PassService = Depends(get_pass_service),
+    db = Depends(get_database)
 ):
     """
     Extend an active pass.
@@ -353,9 +354,6 @@ async def extend_pass(
     """
     from datetime import datetime, timedelta
     from bson import ObjectId
-    from app.core.database import get_database
-    
-    db = await anext(get_database())
     
     pass_doc = await db.passes.find_one({'_id': ObjectId(pass_id)})
     if not pass_doc:
