@@ -31,7 +31,7 @@ async def trigger_alert(
     current_user: dict = Depends(require_role(UserRole.ADMIN))
 ):
     """(Admin only) Trigger a new emergency alert."""
-    db = get_database()
+    # db = get_database() - FIXED
     
     # Check if there's already an active alert
     existing_alert = await db.emergency_alerts.find_one({'resolved_at': None})
@@ -59,7 +59,7 @@ async def resolve_alert(
     current_user: dict = Depends(require_role(UserRole.ADMIN))
 ):
     """(Admin only) Resolve an active alert."""
-    db = get_database()
+    # db = get_database() - FIXED
     
     alert = await db.emergency_alerts.find_one({'_id': ObjectId(alert_id)})
     if not alert:
@@ -89,7 +89,7 @@ async def check_in(
     current_user: dict = Depends(get_current_active_user)
 ):
     """Users report their status (Safe/Need Help)."""
-    db = get_database()
+    # db = get_database() - FIXED
     user_id = str(current_user['_id'])
     
     # Verify alert exists and is active
@@ -135,7 +135,7 @@ async def get_alert_status(
     current_user: dict = Depends(require_role(UserRole.ADMIN))
 ):
     """(Admin only) Get status of all check-ins for an alert."""
-    db = get_database()
+    # db = get_database() - FIXED
     checkins = await db.emergency_checkins.find({'alert_id': alert_id}).to_list(length=1000)
     for c in checkins:
         c['_id'] = str(c['_id'])

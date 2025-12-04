@@ -26,7 +26,7 @@ class Visitor(VisitorCheckIn):
 @router.post('/check-in', response_model=Visitor)
 async def visitor_check_in(visitor_data: VisitorCheckIn):
     """Visitor self-check-in (Public endpoint)."""
-    db = get_database()
+    # db = get_database() - FIXED
     
     new_visitor = visitor_data.dict()
     new_visitor['check_in_time'] = datetime.utcnow()
@@ -42,7 +42,7 @@ async def get_active_visitors(
     current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF))
 ):
     """(Admin/Staff) List active visitors."""
-    db = get_database()
+    # db = get_database() - FIXED
     visitors = await db.visitors.find({'is_active': True}).to_list(length=100)
     for v in visitors:
         v['_id'] = str(v['_id'])
@@ -54,7 +54,7 @@ async def visitor_check_out(
     current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF))
 ):
     """(Admin/Staff) Check out a visitor."""
-    db = get_database()
+    # db = get_database() - FIXED
     
     visitor = await db.visitors.find_one({'_id': ObjectId(visitor_id)})
     if not visitor:
