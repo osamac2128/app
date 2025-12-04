@@ -1,6 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { authApi, User, RegisterRequest } from '../api/auth';
+
+// Export API_URL for use in other components
+export const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
+                       process.env.EXPO_PUBLIC_BACKEND_URL || 
+                       'http://localhost:8000';
 
 interface AuthContextType {
   user: User | null;
