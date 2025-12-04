@@ -231,12 +231,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Smart Pass location loading issue"
-    - "View ID quick action navigation fix"
-  stuck_tasks: 
-    - "Smart Pass Screen"
+    - "Admin Messages/Announcements API"
+    - "Admin Messages/Announcements Screen"
+  stuck_tasks: []
   test_all: false
-  test_priority: "stuck_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
