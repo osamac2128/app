@@ -351,7 +351,7 @@ class AISJBackendTester:
             return
         
         # Get pending passes (staff token)
-        success, data, error = self.make_request('GET', '/passes/teacher/pending', auth_required=True)
+        success, data, error = self.make_request('GET', '/passes/teacher/pending', use_staff_token=True)
         if success:
             self.log_result("admin_passes", "get_pending_passes", True, f"Found {len(data)} pending passes", None)
             
@@ -359,7 +359,7 @@ class AISJBackendTester:
             if data and len(data) > 0:
                 pass_id = data[0]['_id']
                 
-                success, approve_data, error = self.make_request('POST', f'/passes/approve/{pass_id}', auth_required=True)
+                success, approve_data, error = self.make_request('POST', f'/passes/approve/{pass_id}', use_staff_token=True)
                 if success:
                     self.log_result("admin_passes", "approve_pass", True, "Pass approved successfully", None)
                 else:
@@ -368,7 +368,7 @@ class AISJBackendTester:
             self.log_result("admin_passes", "get_pending_passes", False, None, error)
         
         # Get overtime passes
-        success, data, error = self.make_request('GET', '/passes/overtime', auth_required=True)
+        success, data, error = self.make_request('GET', '/passes/overtime', use_staff_token=True)
         if success:
             self.log_result("admin_passes", "get_overtime_passes", True, f"Found {len(data)} overtime passes", None)
             
@@ -377,7 +377,7 @@ class AISJBackendTester:
                 pass_id = data[0]['_id']
                 extend_data = {"additional_minutes": 5}
                 
-                success, extend_response, error = self.make_request('POST', f'/passes/extend/{pass_id}', extend_data, auth_required=True)
+                success, extend_response, error = self.make_request('POST', f'/passes/extend/{pass_id}', extend_data, use_staff_token=True)
                 if success:
                     self.log_result("admin_passes", "extend_pass", True, f"Pass extended: {extend_response.get('message')}", None)
                 else:
@@ -387,7 +387,7 @@ class AISJBackendTester:
         
         # Test bulk approve (with empty list)
         bulk_data = {"pass_ids": []}
-        success, data, error = self.make_request('POST', '/passes/bulk-approve', bulk_data, auth_required=True)
+        success, data, error = self.make_request('POST', '/passes/bulk-approve', bulk_data, use_staff_token=True)
         if success:
             self.log_result("admin_passes", "bulk_approve_passes", True, "Bulk approve endpoint working", None)
         else:
