@@ -12,7 +12,7 @@ from app.core.database import db
 from app.core.exceptions import AppException
 
 # Import routes
-from routes import auth, digital_ids, passes, emergency, notifications, visitors
+from routes import auth, digital_ids, passes, emergency, notifications, visitors, admin
 
 # Configure logging
 logging.basicConfig(
