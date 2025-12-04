@@ -444,14 +444,14 @@ class AISJBackendTester:
                 "station": "main"
             }
             
-            success, reunion_response, error = self.make_request('POST', '/emergency/reunification/check-in', reunion_data, use_staff_token=True if self.staff_token else use_admin_token=True)
+            success, reunion_response, error = self.make_request('POST', '/emergency/reunification/check-in', reunion_data, use_staff_token=bool(self.staff_token), use_admin_token=not bool(self.staff_token))
             if success:
                 self.log_result("emergency_system", "reunification_checkin", True, f"Parent checked in: {reunion_response.get('parent_name')}", None)
             else:
                 self.log_result("emergency_system", "reunification_checkin", False, None, error)
             
             # Get reunification status
-            success, status_response, error = self.make_request('GET', f'/emergency/reunification/status/{alert_id}', use_staff_token=True if self.staff_token else use_admin_token=True)
+            success, status_response, error = self.make_request('GET', f'/emergency/reunification/status/{alert_id}', use_staff_token=bool(self.staff_token), use_admin_token=not bool(self.staff_token))
             if success:
                 details = f"Total students: {status_response.get('total_students')}, Checked-in parents: {status_response.get('checked_in_parents')}"
                 self.log_result("emergency_system", "reunification_status", True, details, None)
