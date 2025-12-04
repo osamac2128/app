@@ -677,15 +677,37 @@ class AISJBackendTester:
         self.auth_token = old_token
 
     def run_all_tests(self):
-        """Run all test suites"""
-        print("🚀 Starting AISJ Connect Backend API Tests")
+        """Run all test suites including comprehensive admin testing"""
+        print("🚀 Starting AISJ Connect Backend API Tests - COMPREHENSIVE ADMIN TESTING")
         print(f"🌐 Testing against: {self.base_url}")
-        print("=" * 60)
+        print("=" * 80)
         
         start_time = time.time()
         
-        # Run test suites
+        # Phase 1: Basic Health and Authentication
         self.test_health_check()
+        
+        # Phase 2: Admin Authentication (Critical for admin tests)
+        admin_auth_success = self.test_admin_authentication()
+        
+        # Phase 3: Staff User Creation (For approval workflows)
+        staff_creation_success = self.test_staff_user_creation()
+        
+        # Phase 4: Comprehensive Admin Testing (Only if admin auth successful)
+        if admin_auth_success:
+            print("\n🔥 RUNNING COMPREHENSIVE ADMIN FEATURE TESTING...")
+            self.test_admin_dashboard_stats()
+            self.test_admin_location_management()
+            self.test_admin_id_management()
+            
+            if staff_creation_success:
+                self.test_pass_approval_workflow()
+            
+            self.test_emergency_system_comprehensive()
+        else:
+            print("⚠️  Skipping admin tests - admin authentication failed")
+        
+        # Phase 5: Regular User Testing
         self.test_authentication_flow()
         self.test_digital_id_api()
         self.test_smart_pass_api()
