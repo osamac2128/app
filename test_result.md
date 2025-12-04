@@ -231,11 +231,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Backend API testing complete"
-    - "Frontend integration testing"
-  stuck_tasks: []
+    - "Smart Pass location loading issue"
+    - "View ID quick action navigation fix"
+  stuck_tasks: 
+    - "Smart Pass Screen"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "main"
