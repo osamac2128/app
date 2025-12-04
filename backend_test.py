@@ -319,14 +319,14 @@ class AISJBackendTester:
             return
         
         # Get pending ID approvals
-        success, data, error = self.make_request('GET', '/admin/ids/pending-approvals', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/ids/pending-approvals', use_admin_token=True)
         if success:
             self.log_result("admin_ids", "get_pending_approvals", True, f"Found {len(data)} pending approvals", None)
         else:
             self.log_result("admin_ids", "get_pending_approvals", False, None, error)
         
         # Get all IDs with filters
-        success, data, error = self.make_request('GET', '/admin/ids/all?status=active', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/ids/all?status=active', use_admin_token=True)
         if success:
             self.log_result("admin_ids", "get_all_ids", True, f"Found {len(data)} active IDs", None)
             
@@ -334,7 +334,7 @@ class AISJBackendTester:
             if data and len(data) > 0:
                 id_id = data[0]['_id']
                 
-                success, toggle_data, error = self.make_request('PUT', f'/admin/ids/{id_id}/toggle-status', auth_required=True)
+                success, toggle_data, error = self.make_request('PUT', f'/admin/ids/{id_id}/toggle-status', use_admin_token=True)
                 if success:
                     self.log_result("admin_ids", "toggle_id_status", True, f"Status toggled: {toggle_data.get('message')}", None)
                 else:
