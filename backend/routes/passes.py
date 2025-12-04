@@ -10,7 +10,7 @@ from app.core.exceptions import (
     BusinessLogicException
 )
 from utils.dependencies import get_current_active_user, require_role
-from models.passes import PassCreate, Location
+from models.passes import PassCreate, PassRequest, Location
 from models.users import UserRole
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
