@@ -417,7 +417,7 @@ class AISJBackendTester:
             "scope": "school_wide"
         }
         
-        success, data, error = self.make_request('POST', '/emergency/trigger', alert_data, auth_required=True)
+        success, data, error = self.make_request('POST', '/emergency/trigger', alert_data, use_admin_token=True)
         alert_id = None
         if success and '_id' in data:
             alert_id = data['_id']
@@ -431,7 +431,7 @@ class AISJBackendTester:
                 "location": "Admin Office"
             }
             
-            success, checkin_response, error = self.make_request('POST', '/emergency/check-in', checkin_data, auth_required=True)
+            success, checkin_response, error = self.make_request('POST', '/emergency/check-in', checkin_data, use_admin_token=True)
             if success:
                 self.log_result("emergency_system", "emergency_checkin", True, f"Checked in as: {checkin_response.get('status')}", None)
             else:
@@ -444,14 +444,14 @@ class AISJBackendTester:
                 "station": "main"
             }
             
-            success, reunion_response, error = self.make_request('POST', '/emergency/reunification/check-in', reunion_data, auth_required=True)
+            success, reunion_response, error = self.make_request('POST', '/emergency/reunification/check-in', reunion_data, use_staff_token=True if self.staff_token else use_admin_token=True)
             if success:
                 self.log_result("emergency_system", "reunification_checkin", True, f"Parent checked in: {reunion_response.get('parent_name')}", None)
             else:
                 self.log_result("emergency_system", "reunification_checkin", False, None, error)
             
             # Get reunification status
-            success, status_response, error = self.make_request('GET', f'/emergency/reunification/status/{alert_id}', auth_required=True)
+            success, status_response, error = self.make_request('GET', f'/emergency/reunification/status/{alert_id}', use_staff_token=True if self.staff_token else use_admin_token=True)
             if success:
                 details = f"Total students: {status_response.get('total_students')}, Checked-in parents: {status_response.get('checked_in_parents')}"
                 self.log_result("emergency_system", "reunification_status", True, details, None)
@@ -459,7 +459,7 @@ class AISJBackendTester:
                 self.log_result("emergency_system", "reunification_status", False, None, error)
             
             # Resolve emergency
-            success, resolve_response, error = self.make_request('POST', f'/emergency/resolve/{alert_id}', auth_required=True)
+            success, resolve_response, error = self.make_request('POST', f'/emergency/resolve/{alert_id}', use_admin_token=True)
             if success:
                 self.log_result("emergency_system", "resolve_emergency", True, "Emergency resolved successfully", None)
             else:
@@ -468,7 +468,7 @@ class AISJBackendTester:
             self.log_result("emergency_system", "trigger_alert", False, None, error)
         
         # Get emergency history
-        success, data, error = self.make_request('GET', '/emergency/history', auth_required=True)
+        success, data, error = self.make_request('GET', '/emergency/history', use_admin_token=True)
         if success:
             self.log_result("emergency_system", "get_emergency_history", True, f"Found {len(data)} historical alerts", None)
         else:
@@ -481,14 +481,14 @@ class AISJBackendTester:
             "notes": "Monthly fire drill - backend test"
         }
         
-        success, data, error = self.make_request('POST', '/emergency/drill/schedule', drill_data, auth_required=True)
+        success, data, error = self.make_request('POST', '/emergency/drill/schedule', drill_data, use_admin_token=True)
         if success:
             self.log_result("emergency_system", "schedule_drill", True, f"Drill scheduled: {data.get('drill_type')}", None)
         else:
             self.log_result("emergency_system", "schedule_drill", False, None, error)
         
         # Get upcoming drills
-        success, data, error = self.make_request('GET', '/emergency/drill/upcoming', auth_required=True)
+        success, data, error = self.make_request('GET', '/emergency/drill/upcoming', use_staff_token=True if self.staff_token else use_admin_token=True)
         if success:
             self.log_result("emergency_system", "get_upcoming_drills", True, f"Found {len(data)} upcoming drills", None)
         else:
