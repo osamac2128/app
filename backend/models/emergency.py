@@ -6,25 +6,60 @@ from .users import DivisionType
 
 # Enums
 class EmergencyType(str, Enum):
-    LOCKDOWN = "lockdown"
-    FIRE = "fire"
-    SHELTER = "shelter"
-    HOLD = "hold"
-    ALL_CLEAR = "all_clear"
-    DRILL = "drill"
+    """Types of emergency alerts"""
+    LOCKDOWN = "lockdown"  # Secure, shelter-in-place
+    LOCKDOWN_SECURE = "lockdown_secure"  # Lock doors, continue activities
+    LOCKOUT = "lockout"  # Threat outside building
+    FIRE = "fire"  # Evacuation
+    FIRE_DRILL = "fire_drill"
     MEDICAL = "medical"
-    WEATHER = "weather"
+    WEATHER = "weather"  # Tornado, hurricane
+    TORNADO = "tornado"
+    TORNADO_DRILL = "tornado_drill"
+    EARTHQUAKE = "earthquake"
+    EARTHQUAKE_DRILL = "earthquake_drill"
+    HAZMAT = "hazmat"  # Chemical/environmental
+    POLICE_ACTIVITY = "police_activity"
+    EVACUATION = "evacuation"  # General evacuation
+    SHELTER_IN_PLACE = "shelter_in_place"
+    ALL_CLEAR = "all_clear"
+    DRILL = "drill"  # General drill
+    OTHER = "other"
 
 class SeverityLevel(str, Enum):
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
+    """Severity levels"""
+    INFO = "info"  # All-clear, announcements
+    LOW = "low"  # Minor incidents, drills
+    MEDIUM = "medium"  # Requires attention
+    HIGH = "high"  # Serious emergency
+    CRITICAL = "critical"  # Life-threatening
 
 class CheckinStatus(str, Enum):
+    """Check-in status options"""
     SAFE = "safe"
+    SAFE_WITH_INJURIES = "safe_with_injuries"
     NEED_HELP = "need_help"
-    UNACCOUNTED = "unaccounted"
+    NEED_MEDICAL = "need_medical"
+    MISSING = "missing"
+    NOT_CHECKED_IN = "not_checked_in"
+
+class AlertScope(str, Enum):
+    """Alert distribution scope"""
+    SCHOOL_WIDE = "school_wide"
+    BUILDING = "building"
+    FLOOR = "floor"
+    WING = "wing"
+    CLASSROOM = "classroom"
+    CUSTOM = "custom"
+
+class DrillType(str, Enum):
+    """Types of emergency drills"""
+    FIRE = "fire"
+    LOCKDOWN = "lockdown"
+    TORNADO = "tornado"
+    EARTHQUAKE = "earthquake"
+    EVACUATION = "evacuation"
+    CUSTOM = "custom"
 
 # Emergency Alert Models
 class EmergencyAlert(BaseModel):
