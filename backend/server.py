@@ -100,6 +100,7 @@ api_router.include_router(emergency.router)
 api_router.include_router(notifications.router)
 api_router.include_router(visitors.router)
 api_router.include_router(admin.router)
+api_router.include_router(user_management.router)
 
 # Include the router in the main app
 app.include_router(api_router)
