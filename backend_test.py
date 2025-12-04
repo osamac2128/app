@@ -266,7 +266,7 @@ class AISJBackendTester:
             return
         
         # Get all locations
-        success, data, error = self.make_request('GET', '/admin/locations/all?include_inactive=true', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/locations/all?include_inactive=true', use_admin_token=True)
         if success:
             self.log_result("admin_locations", "get_all_locations", True, f"Found {len(data)} locations", None)
         else:
@@ -281,7 +281,7 @@ class AISJBackendTester:
             "requires_approval": True
         }
         
-        success, data, error = self.make_request('POST', '/admin/locations', test_location, auth_required=True)
+        success, data, error = self.make_request('POST', '/admin/locations', test_location, use_admin_token=True)
         if success and '_id' in data:
             location_id = data['_id']
             self.created_resources['locations'].append(location_id)
@@ -295,12 +295,12 @@ class AISJBackendTester:
                 "requires_approval": False
             }
             
-            success, data, error = self.make_request('PUT', f'/admin/locations/{location_id}', updated_data, auth_required=True)
+            success, data, error = self.make_request('PUT', f'/admin/locations/{location_id}', updated_data, use_admin_token=True)
             if success:
                 self.log_result("admin_locations", "update_location", True, f"Updated to: {data['name']}", None)
                 
                 # Deactivate location
-                success, data, error = self.make_request('DELETE', f'/admin/locations/{location_id}', auth_required=True)
+                success, data, error = self.make_request('DELETE', f'/admin/locations/{location_id}', use_admin_token=True)
                 if success:
                     self.log_result("admin_locations", "deactivate_location", True, "Location deactivated", None)
                 else:
