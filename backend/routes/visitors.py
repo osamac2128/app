@@ -50,10 +50,10 @@ async def get_active_visitors(
 @router.post('/check-out/{visitor_id}', response_model=Visitor)
 async def visitor_check_out(
     visitor_id: str,
-    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF))
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
 ):
     """(Admin/Staff) Check out a visitor."""
-    # db = get_database() - FIXED
     
     visitor = await db.visitors.find_one({'_id': ObjectId(visitor_id)})
     if not visitor:
