@@ -246,63 +246,78 @@ agent_communication:
 backend:
   - task: "Authentication API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/routes/auth.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Registration, login, logout, profile update endpoints exist. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ All authentication endpoints working correctly. Login/logout flow tested successfully. Profile updates working. Registration correctly rejects duplicate emails (409 Conflict). Fixed database dependency injection issues in utils/dependencies.py."
   
   - task: "Digital ID API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/routes/digital_ids.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Digital ID fetch, photo upload endpoints exist. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Digital ID endpoints working correctly. GET /my-id creates digital ID with QR code and barcode. Photo upload accepts files and returns base64 encoded data with pending status. Fixed database dependency injection."
   
   - task: "Smart Pass API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/routes/passes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Pass request, locations fetch, active pass, end pass endpoints exist. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Smart Pass system working correctly. Locations endpoint returns 6 seeded locations. Pass request/active/end flow working. Created PassRequest model to handle API requests without student_id field (extracted from auth token). Full pass lifecycle tested successfully."
   
   - task: "Notifications API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/routes/notifications.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Notification fetch endpoints exist. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Notifications API working correctly. GET /my-notifications returns user-specific notifications based on role and user ID. Returns empty list when no notifications exist (expected behavior). Fixed database dependency injection."
   
   - task: "Emergency API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/routes/emergency.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Emergency alert endpoints exist. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Emergency API working correctly. GET /active returns null when no active alerts (expected behavior). All emergency endpoints properly handle database operations. Fixed database dependency injection across all emergency routes."
 
 frontend:
   - task: "Login Screen"
