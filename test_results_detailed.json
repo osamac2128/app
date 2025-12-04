@@ -2,69 +2,69 @@
   "authentication": {
     "root_endpoint": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.306014",
+      "timestamp": "2025-12-04T14:31:37.396791",
       "details": "AISJ Connect API",
       "error": null
     },
     "health_check": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.353071",
+      "timestamp": "2025-12-04T14:31:37.405992",
       "details": "healthy",
       "error": null
     },
     "register": {
       "success": false,
-      "timestamp": "2025-12-04T14:29:37.406785",
+      "timestamp": "2025-12-04T14:31:37.421135",
       "details": null,
       "error": "HTTP 409: Email already registered"
     },
     "login": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.660409",
+      "timestamp": "2025-12-04T14:31:37.676646",
       "details": "Token received: True",
       "error": null
     },
     "get_current_user": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.707191",
-      "details": "User: Sarah Johnson",
+      "timestamp": "2025-12-04T14:31:37.683670",
+      "details": "User: Sarah Updated Johnson",
       "error": null
     },
     "update_profile": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.718328",
+      "timestamp": "2025-12-04T14:31:37.691222",
       "details": "Updated name: Sarah Updated",
       "error": null
     },
     "logout": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.766429",
+      "timestamp": "2025-12-04T14:31:37.697224",
       "details": "Successfully logged out",
       "error": null
     },
     "invalid_login": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.877078",
+      "timestamp": "2025-12-04T14:31:37.919247",
       "details": "Correctly rejected invalid credentials",
       "error": "HTTP 401: Invalid email or password"
     },
     "no_auth_protection": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.882951",
+      "timestamp": "2025-12-04T14:31:37.924153",
       "details": "Correctly rejected unauthenticated request",
       "error": "HTTP 403: Not authenticated"
     }
   },
   "digital_ids": {
     "get_my_id": {
-      "success": false,
-      "timestamp": "2025-12-04T14:29:37.775393",
-      "details": null,
-      "error": "HTTP 500: Internal server error"
+      "success": true,
+      "timestamp": "2025-12-04T14:31:37.748870",
+      "details": "QR Code: AISJ:69319ab032cc693...",
+      "error": null
     },
     "upload_photo": {
       "success": false,
-      "timestamp": "2025-12-04T14:29:37.780735",
+      "timestamp": "2025-12-04T14:31:37.796891",
       "details": null,
       "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     }
@@ -72,50 +72,47 @@
   "passes": {
     "get_locations": {
       "success": true,
-      "timestamp": "2025-12-04T14:29:37.792338",
+      "timestamp": "2025-12-04T14:31:37.803905",
       "details": "Found 6 locations",
       "error": null
     },
     "request_pass": {
       "success": false,
-      "timestamp": "2025-12-04T14:29:37.798537",
+      "timestamp": "2025-12-04T14:31:37.809611",
       "details": null,
       "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'student_id'], 'msg': 'Field required', 'input': {'origin_location_id': '69312e0aa1d0993455537551', 'destination_location_id': '69312e0aa1d0993455537552', 'time_limit_minutes': 15, 'notes': 'Need to use restroom'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     },
     "get_active_pass": {
       "success": false,
-      "timestamp": "2025-12-04T14:29:37.857483",
+      "timestamp": "2025-12-04T14:31:37.815660",
       "details": null,
       "error": "HTTP 404: No active pass found"
     }
   },
   "notifications": {
     "get_my_notifications": {
-      "success": false,
-      "timestamp": "2025-12-04T14:29:37.864333",
-      "details": null,
-      "error": "HTTP 500: Internal server error"
+      "success": true,
+      "timestamp": "2025-12-04T14:31:37.863821",
+      "details": "Found 0 notifications",
+      "error": null
     }
   },
   "emergency": {
     "get_active_alert": {
-      "success": false,
-      "timestamp": "2025-12-04T14:29:37.870265",
-      "details": null,
-      "error": "HTTP 500: Internal server error"
+      "success": true,
+      "timestamp": "2025-12-04T14:31:37.913007",
+      "details": "Active alert: False",
+      "error": null
     }
   },
   "summary": {
-    "passed": 9,
-    "failed": 7,
+    "passed": 12,
+    "failed": 4,
     "errors": [
       "authentication.register: HTTP 409: Email already registered",
-      "digital_ids.get_my_id: HTTP 500: Internal server error",
       "digital_ids.upload_photo: HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
       "passes.request_pass: HTTP 422: [{'type': 'missing', 'loc': ['body', 'student_id'], 'msg': 'Field required', 'input': {'origin_location_id': '69312e0aa1d0993455537551', 'destination_location_id': '69312e0aa1d0993455537552', 'time_limit_minutes': 15, 'notes': 'Need to use restroom'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
-      "passes.get_active_pass: HTTP 404: No active pass found",
-      "notifications.get_my_notifications: HTTP 500: Internal server error",
-      "emergency.get_active_alert: HTTP 500: Internal server error"
+      "passes.get_active_pass: HTTP 404: No active pass found"
     ]
   }
 }
