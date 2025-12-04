@@ -46,7 +46,7 @@ async def get_locations(
 
 @router.post('/request', response_model=dict, status_code=status.HTTP_201_CREATED)
 async def request_pass(
-    pass_request: PassCreate,
+    pass_request: PassRequest,
     current_user: dict = Depends(get_current_active_user),
     pass_service: PassService = Depends(get_pass_service)
 ):
