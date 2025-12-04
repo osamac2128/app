@@ -53,7 +53,8 @@ async def get_my_digital_id(current_user: dict = Depends(get_current_active_user
 @router.post('/upload-photo', response_model=PhotoUploadResponse)
 async def upload_photo(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    db = Depends(get_database)
 ):
     """Upload a photo for the digital ID."""
     # Validate file type
@@ -69,8 +70,6 @@ async def upload_photo(
     # Encode to base64
     # In production, this should upload to S3/Cloud Storage and return a URL
     base64_image = f"data:{file.content_type};base64,{base64.b64encode(content).decode('utf-8')}"
-    
-    db = get_database()
     user_id = str(current_user['_id'])
     
     # Update Digital ID
