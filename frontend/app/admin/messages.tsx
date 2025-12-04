@@ -245,16 +245,18 @@ export default function AdminMessagesScreen() {
                     <Text style={styles.messageTitle}>{notification.title}</Text>
                     <Text style={styles.messageType}>{notification.type.toUpperCase()}</Text>
                   </View>
-                  <View
-                    style={[
-                      styles.priorityBadge,
-                      { backgroundColor: getPriorityBadge(notification.priority).color },
-                    ]}
-                  >
-                    <Text style={styles.priorityText}>
-                      {getPriorityBadge(notification.priority).text}
-                    </Text>
-                  </View>
+                  {notification.priority && (
+                    <View
+                      style={[
+                        styles.priorityBadge,
+                        { backgroundColor: getPriorityBadge(notification.priority).color },
+                      ]}
+                    >
+                      <Text style={styles.priorityText}>
+                        {getPriorityBadge(notification.priority).text}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 <Text style={styles.messageContent}>{notification.body}</Text>
