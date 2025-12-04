@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -23,11 +25,15 @@ export default function HomeScreen() {
   };
 
   const quickActions = [
-    { icon: 'card', title: 'View ID', color: '#1E3A5F' },
-    { icon: 'time', title: 'Request Pass', color: '#2E5A8F' },
-    { icon: 'notifications', title: 'Notifications', color: '#10B981' },
-    { icon: 'settings', title: 'Settings', color: '#6B7280' },
+    { icon: 'card', title: 'View ID', color: '#1E3A5F', route: 'id-card' },
+    { icon: 'time', title: 'Request Pass', color: '#2E5A8F', route: 'smart-pass' },
+    { icon: 'notifications', title: 'Notifications', color: '#10B981', route: 'messages' },
+    { icon: 'settings', title: 'Settings', color: '#6B7280', route: 'profile' },
   ];
+
+  const handleQuickAction = (route: string) => {
+    router.push(`/(tabs)/${route}` as any);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
