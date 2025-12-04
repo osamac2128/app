@@ -454,3 +454,15 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ Profile screen working correctly. User information displayed, Edit button opens profile edit modal with form fields (First Name, Last Name, Phone), Save Changes button present. Logout button found. Settings menu items visible. All core functionality working."
+  
+  - task: "Admin Messages/Announcements Screen"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/admin/messages.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Screen already existed but was using mock data. Updated to connect to real backend API. Changes: 1) Updated handleSend to call POST /api/notifications/send with proper data mapping (message→body, type mappings, target→target_roles array). 2) Updated fetchNotifications to call GET /api/notifications/sent. 3) Fixed interface to use 'body' instead of 'message'. 4) Added conditional rendering for priority badge. Screen includes compose modal with target audience selector, message type buttons, title/message inputs. Ready for testing."
