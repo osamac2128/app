@@ -1,132 +1,229 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+"""Hall pass routes"""
+
+from fastapi import APIRouter, Depends, status
 from typing import List
-from datetime import datetime, timedelta
 from app.core.database import get_database
-from utils.dependencies import get_current_active_user, require_role
-from models.passes import (
-    Pass, PassCreate, PassUpdate, PassStatus,
-    Location, LocationType
+from app.services.pass_service import PassService
+from app.core.exceptions import (
+    ValidationException,
+    NotFoundException,
+    BusinessLogicException
 )
+from utils.dependencies import get_current_active_user, require_role
+from models.passes import PassCreate, Location
 from models.users import UserRole
-from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 router = APIRouter(prefix='/passes', tags=['Smart Pass'])
 
-@router.get('/locations', response_model=List[Location])
-async def get_locations(current_user: dict = Depends(get_current_active_user)):
-    """Fetch all active locations."""
-    db = get_database()
-    locations = await db.locations.find({'is_active': True}).to_list(length=100)
-    # Convert _id to string
-    for loc in locations:
-        loc['_id'] = str(loc['_id'])
-    return locations
 
-@router.post('/request', response_model=Pass)
+# Dependency to get pass service
+async def get_pass_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> PassService:
+    """Get pass service instance"""
+    return PassService(db)
+
+
+# Routes
+@router.get('/locations', response_model=List[Location])
+async def get_locations(
+    current_user: dict = Depends(get_current_active_user),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Get all active locations.
+
+    Returns a list of all active locations available for hall passes.
+
+    Args:
+        current_user: Current authenticated user
+        pass_service: Pass service instance
+
+    Returns:
+        List of active locations
+    """
+    return await pass_service.get_active_locations()
+
+
+@router.post('/request', response_model=dict, status_code=status.HTTP_201_CREATED)
 async def request_pass(
     pass_request: PassCreate,
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    pass_service: PassService = Depends(get_pass_service)
 ):
-    """Request a new pass."""
-    db = get_database()
-    user_id = str(current_user['_id'])
-    
-    # Check for existing active pass
-    active_pass = await db.passes.find_one({
-        'student_id': user_id,
-        'status': {'$in': [PassStatus.ACTIVE, PassStatus.PENDING, PassStatus.APPROVED]}
-    })
-    
-    if active_pass:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You already have an active or pending pass."
-        )
+    """
+    Request a new hall pass.
 
-    # Create new pass
-    new_pass = {
-        'student_id': user_id,
-        'origin_location_id': pass_request.origin_location_id,
-        'destination_location_id': pass_request.destination_location_id,
-        'status': PassStatus.ACTIVE, # Auto-approve for now for simplicity
-        'requested_at': datetime.utcnow(),
-        'departed_at': datetime.utcnow(), # Auto-depart
-        'time_limit_minutes': pass_request.time_limit_minutes,
-        'is_overtime': False,
-        'notes': pass_request.notes,
-        'created_at': datetime.utcnow(),
-        'updated_at': datetime.utcnow()
-    }
-    
-    result = await db.passes.insert_one(new_pass)
-    new_pass['_id'] = str(result.inserted_id)
-    
-    return new_pass
+    Creates a new hall pass for the authenticated student.
 
-@router.get('/active', response_model=Pass)
-async def get_active_pass(current_user: dict = Depends(get_current_active_user)):
-    """Get current user's active pass."""
-    db = get_database()
-    user_id = str(current_user['_id'])
-    
-    active_pass = await db.passes.find_one({
-        'student_id': user_id,
-        'status': PassStatus.ACTIVE
-    })
-    
-    if not active_pass:
-        raise HTTPException(status_code=404, detail="No active pass found")
-        
-    active_pass['_id'] = str(active_pass['_id'])
-    return active_pass
+    Args:
+        pass_request: Pass request details
+        current_user: Current authenticated user
+        pass_service: Pass service instance
 
-@router.post('/end/{pass_id}', response_model=Pass)
+    Returns:
+        Created pass document
+
+    Raises:
+        BusinessLogicException: If business rules are violated
+        NotFoundException: If location not found
+        ValidationException: If validation fails
+    """
+    return await pass_service.request_pass(
+        student_id=current_user['_id'],
+        origin_location_id=pass_request.origin_location_id,
+        destination_location_id=pass_request.destination_location_id,
+        time_limit_minutes=pass_request.time_limit_minutes,
+        notes=pass_request.notes
+    )
+
+
+@router.get('/active', response_model=dict)
+async def get_active_pass(
+    current_user: dict = Depends(get_current_active_user),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Get current user's active pass.
+
+    Returns the active hall pass for the authenticated user.
+
+    Args:
+        current_user: Current authenticated user
+        pass_service: Pass service instance
+
+    Returns:
+        Active pass document or None
+
+    Raises:
+        NotFoundException: If no active pass found
+    """
+    pass_doc = await pass_service.get_active_pass_for_student(current_user['_id'])
+
+    if not pass_doc:
+        raise NotFoundException("No active pass found")
+
+    return pass_doc
+
+
+@router.post('/end/{pass_id}', response_model=dict)
 async def end_pass(
     pass_id: str,
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    pass_service: PassService = Depends(get_pass_service)
 ):
-    """End an active pass."""
-    db = get_database()
-    user_id = str(current_user['_id'])
-    
-    # Verify pass belongs to user
-    existing_pass = await db.passes.find_one({
-        '_id': ObjectId(pass_id),
-        'student_id': user_id,
-        'status': PassStatus.ACTIVE
-    })
-    
-    if not existing_pass:
-        raise HTTPException(status_code=404, detail="Active pass not found")
-        
-    update_data = {
-        'status': PassStatus.COMPLETED,
-        'returned_at': datetime.utcnow(),
-        'updated_at': datetime.utcnow()
-    }
-    
-    await db.passes.update_one(
-        {'_id': ObjectId(pass_id)},
-        {'$set': update_data}
-    )
-    
-    existing_pass.update(update_data)
-    existing_pass['_id'] = str(existing_pass['_id'])
-    
-    return existing_pass
+    """
+    End an active pass.
 
-@router.get('/hall-monitor', response_model=List[Pass])
+    Marks the specified hall pass as completed.
+
+    Args:
+        pass_id: Pass ID to end
+        current_user: Current authenticated user
+        pass_service: Pass service instance
+
+    Returns:
+        Updated pass document
+
+    Raises:
+        NotFoundException: If pass not found
+        BusinessLogicException: If pass doesn't belong to user or already ended
+    """
+    return await pass_service.end_pass(pass_id, current_user['_id'])
+
+
+@router.get('/hall-monitor', response_model=List[dict])
 async def hall_monitor(
-    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN))
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
 ):
-    """Get all currently active passes (Staff only)."""
-    db = get_database()
-    
-    # Join with users to get student names (simplified for now, just returning passes)
-    # In a real app, we'd use an aggregation pipeline to lookup student details
-    active_passes = await db.passes.find({'status': PassStatus.ACTIVE}).to_list(length=100)
-    
-    for p in active_passes:
-        p['_id'] = str(p['_id'])
-        
-    return active_passes
+    """
+    Get all currently active passes (Staff/Admin only).
+
+    Returns all active hall passes with student and location information
+    for hall monitoring purposes.
+
+    Args:
+        current_user: Current authenticated user (must be staff or admin)
+        pass_service: Pass service instance
+
+    Returns:
+        List of active passes with enriched information
+    """
+    return await pass_service.get_all_active_passes()
+
+
+@router.get('/history', response_model=List[dict])
+async def get_pass_history(
+    current_user: dict = Depends(get_current_active_user),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Get pass history for current user.
+
+    Returns the hall pass history for the authenticated user.
+
+    Args:
+        current_user: Current authenticated user
+        pass_service: Pass service instance
+
+    Returns:
+        List of past passes
+    """
+    return await pass_service.get_pass_history_for_student(
+        student_id=current_user['_id'],
+        limit=50
+    )
+
+
+@router.post('/approve/{pass_id}', response_model=dict)
+async def approve_pass(
+    pass_id: str,
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Approve a pending pass (Staff/Admin only).
+
+    Approves a pending hall pass request.
+
+    Args:
+        pass_id: Pass ID to approve
+        current_user: Current authenticated user (must be staff or admin)
+        pass_service: Pass service instance
+
+    Returns:
+        Updated pass document
+
+    Raises:
+        NotFoundException: If pass not found
+        BusinessLogicException: If pass is not pending
+    """
+    return await pass_service.approve_pass(pass_id, current_user['_id'])
+
+
+@router.post('/deny/{pass_id}', response_model=dict)
+async def deny_pass(
+    pass_id: str,
+    reason: str = None,
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Deny a pending pass (Staff/Admin only).
+
+    Denies a pending hall pass request.
+
+    Args:
+        pass_id: Pass ID to deny
+        reason: Optional denial reason
+        current_user: Current authenticated user (must be staff or admin)
+        pass_service: Pass service instance
+
+    Returns:
+        Updated pass document
+
+    Raises:
+        NotFoundException: If pass not found
+        BusinessLogicException: If pass is not pending
+    """
+    return await pass_service.deny_pass(pass_id, current_user['_id'], reason)
