@@ -244,6 +244,8 @@ agent_communication:
     message: "Discovered all frontend screens are fully coded. Fixed missing dependencies (react-native-qrcode-svg, expo-image-picker, react-native-svg) and API_URL export issue in AuthContext. Ready for comprehensive testing of all features."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE - 94.1% Pass Rate (16/17 tests passed). All major backend APIs working correctly: Authentication (login/logout/profile), Digital ID (fetch/photo upload), Smart Pass (locations/request/active/end), Notifications, Emergency. Fixed critical database dependency injection issues across all routes. Created comprehensive test suite (backend_test.py). Only 'failure' is expected 409 Conflict for duplicate user registration. Backend is production-ready."
+  - agent: "testing"
+    message: "✅ FRONTEND TESTING COMPLETE - 83% Pass Rate (5/6 major features working). Successfully tested all screens with admin account. WORKING: Login/Registration, Home screen navigation, ID Card display, Messages, Profile with edit functionality, bottom tab navigation. CRITICAL ISSUE: Smart Pass location cards not loading - backend returns 200 OK for /api/passes/locations but frontend not displaying locations. Backend logs show 'Origin location not found' errors with 'classroom_placeholder' ID. Need to fix location seeding or frontend location display logic."
 
 backend:
   - task: "Authentication API"
