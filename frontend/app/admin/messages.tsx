@@ -47,9 +47,8 @@ export default function AdminMessagesScreen() {
 
   const fetchNotifications = async () => {
     try {
-      // Since we don't have a specific admin notifications endpoint yet,
-      // we'll fetch the user's notifications as a placeholder
-      const response = await axios.get(`${API_URL}/api/notifications/my-notifications`, {
+      // Fetch notifications sent by this admin
+      const response = await axios.get(`${API_URL}/api/notifications/sent`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotifications(response.data);
