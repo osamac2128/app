@@ -8,7 +8,7 @@ from pathlib import Path
 # Add backend to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-import database
+from app.core import database
 
 class AsyncMockCollection:
     def __init__(self, collection):
@@ -74,19 +74,19 @@ class AsyncMockDatabase:
 @pytest.fixture(scope="session", autouse=True)
 def mock_mongo():
     mock_client = mongomock.MongoClient()
-    mock_db = AsyncMockDatabase(mock_client.aisj_connect)
-    
-    # Patch database.db
-    database.db = mock_db
-    
-    # Patch connect_to_mongo to do nothing
+    mock_db_instance = AsyncMockDatabase(mock_client.aisj_connect)
+
+    # Patch database.db.db (the Database class instance)
+    database.db.db = mock_db_instance
+
+    # Patch connect method to do nothing
     async def mock_connect():
         pass
-    database.connect_to_mongo = mock_connect
-    
-    # Patch close_mongo_connection
+    database.db.connect = mock_connect
+
+    # Patch close method
     async def mock_close():
         pass
-    database.close_mongo_connection = mock_close
-    
-    return mock_db
+    database.db.close = mock_close
+
+    return mock_db_instance

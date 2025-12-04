@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List, Optional
 from datetime import datetime
-from database import get_database
+from app.core.database import get_database
 from utils.dependencies import get_current_active_user, require_role
 from models.notifications import (
     Notification, NotificationCreate, NotificationStatus,

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from pydantic import BaseModel
 from datetime import datetime
-from database import get_database
+from app.core.database import get_database
 from utils.dependencies import get_current_active_user, require_role
 from models.digital_ids import DigitalID, DigitalIDCreate, PhotoStatus
 from models.users import UserRole

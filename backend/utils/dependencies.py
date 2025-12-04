@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 from utils.auth import decode_access_token
-from database import get_database
+from app.core.database import get_database
 from bson import ObjectId
 
 security = HTTPBearer()

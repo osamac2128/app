@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 from datetime import datetime, timedelta
-from database import get_database
+from app.core.database import get_database
 from utils.dependencies import get_current_active_user, require_role
 from models.passes import (
     Pass, PassCreate, PassUpdate, PassStatus,
