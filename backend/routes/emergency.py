@@ -132,11 +132,141 @@ async def check_in(
 @router.get('/status/{alert_id}', response_model=List[EmergencyCheckIn])
 async def get_alert_status(
     alert_id: str,
-    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
     db = Depends(get_database)
 ):
-    """(Admin only) Get status of all check-ins for an alert."""
+    """(Admin/Staff) Get status of all check-ins for an alert."""
     checkins = await db.emergency_checkins.find({'alert_id': alert_id}).to_list(length=1000)
     for c in checkins:
         c['_id'] = str(c['_id'])
     return checkins
+
+
+@router.get('/history', response_model=List[EmergencyAlert])
+async def get_emergency_history(
+    limit: int = 50,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Get emergency alert history."""
+    alerts = await db.emergency_alerts.find().sort('triggered_at', -1).limit(limit).to_list(length=limit)
+    for alert in alerts:
+        alert['_id'] = str(alert['_id'])
+    return alerts
+
+
+@router.post('/drill/schedule')
+async def schedule_drill(
+    drill_data: dict,
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
+):
+    """(Admin only) Schedule an emergency drill."""
+    drill_data['scheduled_by'] = str(current_user['_id'])
+    drill_data['is_drill'] = True
+    drill_data['created_at'] = datetime.utcnow()
+    
+    result = await db.emergency_drills.insert_one(drill_data)
+    drill_data['_id'] = str(result.inserted_id)
+    
+    return drill_data
+
+
+@router.get('/drill/upcoming')
+async def get_upcoming_drills(
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Get upcoming scheduled drills."""
+    drills = await db.emergency_drills.find({
+        'scheduled_date': {'$gte': datetime.utcnow()},
+        'completed': {'$ne': True}
+    }).to_list(length=100)
+    
+    for drill in drills:
+        drill['_id'] = str(drill['_id'])
+    
+    return drills
+
+
+@router.post('/reunification/check-in')
+async def reunification_check_in(
+    data: dict,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Parent check-in at reunification point."""
+    reunion_data = {
+        'alert_id': data.get('alert_id'),
+        'parent_id': data.get('parent_id'),
+        'parent_name': data.get('parent_name'),
+        'check_in_time': datetime.utcnow(),
+        'station': data.get('station', 'main'),
+        'checked_in_by': str(current_user['_id']),
+        'status': 'checked_in'
+    }
+    
+    result = await db.reunifications.insert_one(reunion_data)
+    reunion_data['_id'] = str(result.inserted_id)
+    
+    return reunion_data
+
+
+@router.post('/reunification/release-student')
+async def release_student(
+    data: dict,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Release student to authorized person."""
+    release_data = {
+        'alert_id': data.get('alert_id'),
+        'student_id': data.get('student_id'),
+        'released_to': data.get('released_to'),
+        'released_to_name': data.get('released_to_name'),
+        'release_time': datetime.utcnow(),
+        'released_by': str(current_user['_id']),
+        'signature': data.get('signature'),
+        'notes': data.get('notes')
+    }
+    
+    result = await db.student_releases.insert_one(release_data)
+    release_data['_id'] = str(result.inserted_id)
+    
+    # Update student status
+    await db.emergency_checkins.update_one(
+        {'alert_id': data.get('alert_id'), 'user_id': data.get('student_id')},
+        {'$set': {'released': True, 'released_at': datetime.utcnow()}}
+    )
+    
+    return release_data
+
+
+@router.get('/reunification/status/{alert_id}')
+async def get_reunification_status(
+    alert_id: str,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Get reunification status for an alert."""
+    total_students = await db.users.count_documents({'role': 'student', 'status': 'active'})
+    checked_in_parents = await db.reunifications.count_documents({'alert_id': alert_id})
+    released_students = await db.student_releases.count_documents({'alert_id': alert_id})
+    
+    # Get list of released students
+    releases = await db.student_releases.find({'alert_id': alert_id}).to_list(length=1000)
+    for r in releases:
+        r['_id'] = str(r['_id'])
+        # Enrich with student info
+        student = await db.users.find_one({'_id': ObjectId(r['student_id'])})
+        if student:
+            r['student_name'] = f"{student.get('first_name')} {student.get('last_name')}"
+    
+    return {
+        'alert_id': alert_id,
+        'total_students': total_students,
+        'checked_in_parents': checked_in_parents,
+        'released_students': released_students,
+        'remaining_students': total_students - released_students,
+        'releases': releases
+    }
