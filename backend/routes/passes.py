@@ -232,7 +232,8 @@ async def deny_pass(
 @router.get('/teacher/pending', response_model=List[dict])
 async def get_teacher_pending_passes(
     current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
-    pass_service: PassService = Depends(get_pass_service)
+    pass_service: PassService = Depends(get_pass_service),
+    db = Depends(get_database)
 ):
     """
     Get pending passes requiring teacher approval.
@@ -240,9 +241,6 @@ async def get_teacher_pending_passes(
     Returns all passes that need approval from the current teacher.
     """
     from bson import ObjectId
-    from app.core.database import get_database
-    
-    db = await anext(get_database())
     
     # Get pending passes
     pending_passes = await db.passes.find({
