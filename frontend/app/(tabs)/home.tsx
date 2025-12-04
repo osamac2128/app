@@ -31,6 +31,16 @@ export default function HomeScreen() {
     { icon: 'settings', title: 'Settings', color: '#6B7280', route: 'profile' },
   ];
 
+  // Add admin button for admins and staff
+  if (user?.role === 'admin' || user?.role === 'staff') {
+    quickActions.push({
+      icon: 'shield-checkmark',
+      title: 'Admin Panel',
+      color: '#EF4444',
+      route: '../admin/dashboard',
+    });
+  }
+
   const handleQuickAction = (route: string) => {
     router.push(`/(tabs)/${route}` as any);
   };
