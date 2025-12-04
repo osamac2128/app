@@ -227,3 +227,161 @@ async def deny_pass(
         BusinessLogicException: If pass is not pending
     """
     return await pass_service.deny_pass(pass_id, current_user['_id'], reason)
+
+
+@router.get('/teacher/pending', response_model=List[dict])
+async def get_teacher_pending_passes(
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Get pending passes requiring teacher approval.
+    
+    Returns all passes that need approval from the current teacher.
+    """
+    from bson import ObjectId
+    from app.core.database import get_database
+    
+    db = await anext(get_database())
+    
+    # Get pending passes
+    pending_passes = await db.passes.find({
+        'status': 'pending',
+        'requires_approval': True
+    }).sort('created_at', -1).to_list(length=100)
+    
+    # Enrich with student info
+    for pass_doc in pending_passes:
+        pass_doc['_id'] = str(pass_doc['_id'])
+        
+        # Get student info
+        student = await db.users.find_one({'_id': ObjectId(pass_doc['student_id'])})
+        if student:
+            pass_doc['student'] = {
+                'name': f"{student.get('first_name')} {student.get('last_name')}",
+                'email': student.get('email')
+            }
+        
+        # Get location names
+        if pass_doc.get('origin_location_id'):
+            origin = await db.locations.find_one({'_id': ObjectId(pass_doc['origin_location_id'])})
+            if origin:
+                pass_doc['origin_name'] = origin.get('name')
+                
+        if pass_doc.get('destination_location_id'):
+            dest = await db.locations.find_one({'_id': ObjectId(pass_doc['destination_location_id'])})
+            if dest:
+                pass_doc['destination_name'] = dest.get('name')
+    
+    return pending_passes
+
+
+@router.post('/bulk-approve')
+async def bulk_approve_passes(
+    pass_ids: List[str],
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Bulk approve multiple passes.
+    
+    Allows teachers to approve multiple passes at once.
+    """
+    results = []
+    for pass_id in pass_ids:
+        try:
+            result = await pass_service.approve_pass(pass_id, current_user['_id'])
+            results.append({'pass_id': pass_id, 'status': 'approved', 'data': result})
+        except Exception as e:
+            results.append({'pass_id': pass_id, 'status': 'error', 'error': str(e)})
+    
+    return {'results': results}
+
+
+@router.get('/overtime', response_model=List[dict])
+async def get_overtime_passes(
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Get all overtime passes.
+    
+    Returns passes that have exceeded their time limit.
+    """
+    from datetime import datetime, timedelta
+    from bson import ObjectId
+    from app.core.database import get_database
+    
+    db = await anext(get_database())
+    
+    # Get active passes that are overtime
+    now = datetime.utcnow()
+    overtime_passes = await db.passes.find({
+        'status': 'active',
+        'expected_return_time': {'$lt': now}
+    }).to_list(length=100)
+    
+    # Enrich with info
+    for pass_doc in overtime_passes:
+        pass_doc['_id'] = str(pass_doc['_id'])
+        pass_doc['minutes_overtime'] = int((now - pass_doc['expected_return_time']).total_seconds() / 60)
+        
+        # Get student info
+        student = await db.users.find_one({'_id': ObjectId(pass_doc['student_id'])})
+        if student:
+            pass_doc['student'] = {
+                'name': f"{student.get('first_name')} {student.get('last_name')}",
+                'email': student.get('email')
+            }
+        
+        # Get location name
+        if pass_doc.get('destination_location_id'):
+            dest = await db.locations.find_one({'_id': ObjectId(pass_doc['destination_location_id'])})
+            if dest:
+                pass_doc['destination_name'] = dest.get('name')
+    
+    return overtime_passes
+
+
+@router.post('/extend/{pass_id}')
+async def extend_pass(
+    pass_id: str,
+    additional_minutes: int,
+    current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
+    pass_service: PassService = Depends(get_pass_service)
+):
+    """
+    Extend an active pass.
+    
+    Adds additional time to an active pass.
+    """
+    from datetime import datetime, timedelta
+    from bson import ObjectId
+    from app.core.database import get_database
+    
+    db = await anext(get_database())
+    
+    pass_doc = await db.passes.find_one({'_id': ObjectId(pass_id)})
+    if not pass_doc:
+        raise NotFoundException("Pass not found")
+    
+    if pass_doc.get('status') != 'active':
+        raise BusinessLogicException("Can only extend active passes")
+    
+    # Update expected return time
+    new_return_time = pass_doc['expected_return_time'] + timedelta(minutes=additional_minutes)
+    
+    await db.passes.update_one(
+        {'_id': ObjectId(pass_id)},
+        {'$set': {
+            'expected_return_time': new_return_time,
+            'extended_by': str(current_user['_id']),
+            'extension_minutes': additional_minutes,
+            'extended_at': datetime.utcnow()
+        }}
+    )
+    
+    return {
+        'message': f'Pass extended by {additional_minutes} minutes',
+        'new_return_time': new_return_time.isoformat()
+    }
