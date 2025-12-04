@@ -108,7 +108,7 @@ class EmergencyCheckIn(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     alert_id: str  # Reference to EmergencyAlert
     user_id: str  # Reference to User
-    status: CheckinStatus = CheckinStatus.UNACCOUNTED
+    status: CheckinStatus = CheckinStatus.NOT_CHECKED_IN
     location: Optional[str] = None
     checked_in_at: Optional[datetime] = None
     checked_by: Optional[str] = None  # Reference to User
@@ -123,7 +123,7 @@ class EmergencyCheckIn(BaseModel):
 class EmergencyCheckInCreate(BaseModel):
     alert_id: str
     user_id: str
-    status: CheckinStatus = CheckinStatus.UNACCOUNTED
+    status: CheckinStatus = CheckinStatus.NOT_CHECKED_IN
     location: Optional[str] = None
 
     class Config:
