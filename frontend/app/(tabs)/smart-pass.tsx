@@ -81,20 +81,23 @@ export default function SmartPassScreen() {
   const handleRequestPass = async (location: Location) => {
     setActionLoading(true);
     try {
-      // For MVP, origin is hardcoded or assumed. In real app, could be selected or geolocated.
-      // We'll assume "Classroom" as origin for now.
+      // Use the first location as origin (typically a classroom)
+      // In production, this would be selected by user or determined by geolocation
+      const originLocation = locations.length > 0 ? locations[0]._id : location._id;
+      
       const response = await axios.post(
         `${API_URL}/api/passes/request`,
         {
-          student_id: 'current', // Backend handles this
-          origin_location_id: 'classroom_placeholder', // TODO: Implement origin selection
+          origin_location_id: originLocation,
           destination_location_id: location._id,
           time_limit_minutes: location.default_time_limit_minutes,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setActivePass(response.data);
+      Alert.alert('Success', 'Pass requested successfully!');
     } catch (error: any) {
+      console.error('Pass request error:', error);
       Alert.alert('Error', error.response?.data?.detail || 'Failed to request pass');
     } finally {
       setActionLoading(false);
