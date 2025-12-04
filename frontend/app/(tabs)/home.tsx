@@ -41,6 +41,16 @@ export default function HomeScreen() {
     });
   }
 
+  // Add staff-specific button for pass approvals
+  if (user?.role === 'staff' || user?.role === 'admin') {
+    quickActions.push({
+      icon: 'checkmark-done',
+      title: 'Approve Passes',
+      color: '#8B5CF6',
+      route: '../staff/pass-approval',
+    });
+  }
+
   const handleQuickAction = (route: string) => {
     router.push(`/(tabs)/${route}` as any);
   };
