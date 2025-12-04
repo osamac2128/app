@@ -52,7 +52,11 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
             {quickActions.map((action, index) => (
-              <TouchableOpacity key={index} style={styles.actionCard}>
+              <TouchableOpacity 
+                key={index} 
+                style={styles.actionCard}
+                onPress={() => handleQuickAction(action.route)}
+              >
                 <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
                   <Ionicons name={action.icon as any} size={24} color="#FFFFFF" />
                 </View>
