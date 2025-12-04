@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
-from database import get_database
+from app.core.database import get_database
 from utils.auth import verify_password, get_password_hash, create_access_token
 from utils.dependencies import get_current_active_user
 from models.users import UserRole, UserStatus, UserCreate, User, UserUpdate
@@ -21,9 +21,10 @@ class RegisterRequest(BaseModel):
     last_name: str = Field(min_length=1, max_length=100)
     role: UserRole
     phone: str = Field(default=None, max_length=20)
-    
-    @validator('password')
-    def validate_password(cls, v):
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
         if not re.search(r'[A-Z]', v):
@@ -33,7 +34,7 @@ class RegisterRequest(BaseModel):
         if not re.search(r'[0-9]', v):
             raise ValueError('Password must contain at least one number')
         return v
-    
+
     class Config:
         use_enum_values = True
 
