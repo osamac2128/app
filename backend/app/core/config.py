@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:19006", "http://localhost:8081"]
+    ALLOWED_ORIGINS: List[str] = ["*"]
 
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = True
