@@ -299,7 +299,8 @@ async def bulk_approve_passes(
 @router.get('/overtime', response_model=List[dict])
 async def get_overtime_passes(
     current_user: dict = Depends(require_role(UserRole.STAFF, UserRole.ADMIN)),
-    pass_service: PassService = Depends(get_pass_service)
+    pass_service: PassService = Depends(get_pass_service),
+    db = Depends(get_database)
 ):
     """
     Get all overtime passes.
@@ -308,9 +309,6 @@ async def get_overtime_passes(
     """
     from datetime import datetime, timedelta
     from bson import ObjectId
-    from app.core.database import get_database
-    
-    db = await anext(get_database())
     
     # Get active passes that are overtime
     now = datetime.utcnow()
