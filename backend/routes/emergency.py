@@ -56,10 +56,10 @@ async def trigger_alert(
 async def resolve_alert(
     alert_id: str,
     resolution_notes: Optional[str] = None,
-    current_user: dict = Depends(require_role(UserRole.ADMIN))
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
 ):
     """(Admin only) Resolve an active alert."""
-    # db = get_database() - FIXED
     
     alert = await db.emergency_alerts.find_one({'_id': ObjectId(alert_id)})
     if not alert:
@@ -86,10 +86,10 @@ async def resolve_alert(
 @router.post('/check-in', response_model=EmergencyCheckIn)
 async def check_in(
     checkin_data: EmergencyCheckInCreate,
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    db = Depends(get_database)
 ):
     """Users report their status (Safe/Need Help)."""
-    # db = get_database() - FIXED
     user_id = str(current_user['_id'])
     
     # Verify alert exists and is active
@@ -132,10 +132,10 @@ async def check_in(
 @router.get('/status/{alert_id}', response_model=List[EmergencyCheckIn])
 async def get_alert_status(
     alert_id: str,
-    current_user: dict = Depends(require_role(UserRole.ADMIN))
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
 ):
     """(Admin only) Get status of all check-ins for an alert."""
-    # db = get_database() - FIXED
     checkins = await db.emergency_checkins.find({'alert_id': alert_id}).to_list(length=1000)
     for c in checkins:
         c['_id'] = str(c['_id'])

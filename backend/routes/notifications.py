@@ -15,10 +15,10 @@ router = APIRouter(prefix='/notifications', tags=['Notifications'])
 @router.post('/send', response_model=Notification)
 async def send_notification(
     notification_data: NotificationCreate,
-    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF))
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
 ):
     """(Admin/Staff) Create and send a notification."""
-    # db = get_database() - FIXED
     
     new_notification = notification_data.dict()
     new_notification['created_at'] = datetime.utcnow()
@@ -64,10 +64,10 @@ async def get_my_notifications(
 @router.post('/mark-read/{notification_id}')
 async def mark_read(
     notification_id: str,
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    db = Depends(get_database)
 ):
     """Mark a notification as read."""
-    # db = get_database() - FIXED
     user_id = str(current_user['_id'])
     
     # Check if receipt exists
