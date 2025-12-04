@@ -1,177 +1,232 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from datetime import datetime
+"""Authentication routes"""
+
+from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 from app.core.database import get_database
-from utils.auth import verify_password, get_password_hash, create_access_token
+from app.services.auth_service import AuthService
+from app.core.exceptions import (
+    ValidationException,
+    UnauthorizedException,
+    ConflictException,
+    NotFoundException
+)
 from utils.dependencies import get_current_active_user
-from models.users import UserRole, UserStatus, UserCreate, User, UserUpdate
-from bson import ObjectId
-import re
+from models.users import UserRole, UserUpdate
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
+
+# Request/Response Models
 class LoginRequest(BaseModel):
+    """Login request model"""
     email: EmailStr
     password: str
 
+
 class RegisterRequest(BaseModel):
+    """Registration request model"""
     email: EmailStr
     password: str = Field(min_length=8)
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     role: UserRole
-    phone: str = Field(default=None, max_length=20)
-
-    @field_validator('password')
-    @classmethod
-    def validate_password(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not re.search(r'[0-9]', v):
-            raise ValueError('Password must contain at least one number')
-        return v
+    phone: Optional[str] = Field(default=None, max_length=20)
 
     class Config:
         use_enum_values = True
 
+
 class AuthResponse(BaseModel):
+    """Authentication response model"""
     access_token: str
     token_type: str = 'bearer'
     user: dict
 
-@router.post('/register', response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(request: RegisterRequest):
-    """Register a new user."""
-    db = get_database()
-    
-    # Check if user already exists
-    existing_user = await db.users.find_one({'email': request.email.lower()})
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Email already registered'
-        )
-    
-    # Create new user
-    password_hash = get_password_hash(request.password)
-    
-    user_data = {
-        'email': request.email.lower(),
-        'password_hash': password_hash,
-        'first_name': request.first_name,
-        'last_name': request.last_name,
-        'role': request.role,
-        'phone': request.phone,
-        'profile_photo_url': None,
-        'status': UserStatus.ACTIVE.value,
-        'device_tokens': [],
-        'notification_preferences': {},
-        'last_login_at': None,
-        'created_at': datetime.utcnow(),
-        'updated_at': datetime.utcnow()
-    }
-    
-    result = await db.users.insert_one(user_data)
-    user_id = str(result.inserted_id)
-    
-    # Create access token
-    access_token = create_access_token(data={'sub': user_id, 'role': request.role})
-    
-    # Return user data without password
-    user_data['_id'] = user_id
-    user_data.pop('password_hash')
-    
-    return {
-        'access_token': access_token,
-        'token_type': 'bearer',
-        'user': user_data
-    }
 
-@router.post('/login', response_model=AuthResponse)
-async def login(request: LoginRequest):
-    """Login with email and password."""
-    db = get_database()
-    
-    # Find user by email
-    user = await db.users.find_one({'email': request.email.lower()})
-    
-    if not user or not verify_password(request.password, user['password_hash']):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect email or password',
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
-    
-    # Check if user is active
-    if user.get('status') != UserStatus.ACTIVE.value:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Account is inactive or suspended'
-        )
-    
-    # Update last login
-    await db.users.update_one(
-        {'_id': user['_id']},
-        {'$set': {'last_login_at': datetime.utcnow()}}
+class ChangePasswordRequest(BaseModel):
+    """Change password request model"""
+    old_password: str
+    new_password: str = Field(min_length=8)
+
+
+# Dependency to get auth service
+async def get_auth_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> AuthService:
+    """Get auth service instance"""
+    return AuthService(db)
+
+
+# Routes
+@router.post('/register', response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+    request: RegisterRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """
+    Register a new user.
+
+    Creates a new user account and returns an access token.
+
+    Args:
+        request: Registration details
+        auth_service: Auth service instance
+
+    Returns:
+        Access token and user data
+
+    Raises:
+        ConflictException: If email already registered
+        ValidationException: If validation fails
+    """
+    # Register user through service
+    user = await auth_service.register_user(
+        email=request.email,
+        password=request.password,
+        first_name=request.first_name,
+        last_name=request.last_name,
+        role=request.role,
+        phone=request.phone
     )
-    
+
     # Create access token
-    user_id = str(user['_id'])
-    access_token = create_access_token(data={'sub': user_id, 'role': user['role']})
-    
-    # Return user data without password
-    user['_id'] = user_id
-    user.pop('password_hash')
-    
+    access_token = await auth_service.create_access_token_for_user(user)
+
     return {
         'access_token': access_token,
         'token_type': 'bearer',
         'user': user
     }
 
+
+@router.post('/login', response_model=AuthResponse)
+async def login(
+    request: LoginRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """
+    Login with email and password.
+
+    Authenticates user credentials and returns an access token.
+
+    Args:
+        request: Login credentials
+        auth_service: Auth service instance
+
+    Returns:
+        Access token and user data
+
+    Raises:
+        UnauthorizedException: If credentials are invalid or account is inactive
+    """
+    # Authenticate user through service
+    user = await auth_service.authenticate_user(
+        email=request.email,
+        password=request.password
+    )
+
+    # Create access token
+    access_token = await auth_service.create_access_token_for_user(user)
+
+    return {
+        'access_token': access_token,
+        'token_type': 'bearer',
+        'user': user
+    }
+
+
 @router.get('/me')
-async def get_current_user_info(current_user: dict = Depends(get_current_active_user)):
-    """Get current user information."""
-    # Remove sensitive data
-    user_data = current_user.copy()
-    user_data.pop('password_hash', None)
-    return user_data
+async def get_current_user_info(
+    current_user: dict = Depends(get_current_active_user),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """
+    Get current user information.
+
+    Returns the currently authenticated user's profile.
+
+    Args:
+        current_user: Current authenticated user from token
+        auth_service: Auth service instance
+
+    Returns:
+        User profile data
+    """
+    return await auth_service.get_user_by_id(current_user['_id'])
+
 
 @router.post('/logout')
 async def logout(current_user: dict = Depends(get_current_active_user)):
-    """Logout current user (client should delete token)."""
-    # In a JWT system, logout is handled client-side by deleting the token
-    # Optionally, you could maintain a token blacklist
+    """
+    Logout current user.
+
+    In a JWT system, logout is handled client-side by deleting the token.
+    This endpoint exists for API consistency.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        Success message
+    """
     return {'message': 'Successfully logged out'}
+
 
 @router.put('/me', response_model=dict)
 async def update_profile(
     update_data: UserUpdate,
-    current_user: dict = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user),
+    auth_service: AuthService = Depends(get_auth_service)
 ):
-    """Update current user profile."""
-    db = get_database()
-    
-    # Filter out None values
-    update_fields = {k: v for k, v in update_data.dict(exclude_unset=True).items() if v is not None}
-    
-    if not update_fields:
-        return current_user
+    """
+    Update current user profile.
 
-    update_fields['updated_at'] = datetime.utcnow()
+    Updates the authenticated user's profile information.
 
-    await db.users.update_one(
-        {'_id': ObjectId(current_user['_id'])},
-        {'$set': update_fields}
+    Args:
+        update_data: Fields to update
+        current_user: Current authenticated user
+        auth_service: Auth service instance
+
+    Returns:
+        Updated user profile
+
+    Raises:
+        ValidationException: If validation fails
+    """
+    return await auth_service.update_user_profile(
+        user_id=current_user['_id'],
+        update_data=update_data.dict(exclude_unset=True)
     )
-    
-    # Fetch updated user
-    updated_user = await db.users.find_one({'_id': ObjectId(current_user['_id'])})
-    updated_user['_id'] = str(updated_user['_id'])
-    updated_user.pop('password_hash', None)
-    
-    return updated_user
+
+
+@router.post('/change-password')
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_active_user),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """
+    Change user password.
+
+    Updates the authenticated user's password.
+
+    Args:
+        request: Password change details
+        current_user: Current authenticated user
+        auth_service: Auth service instance
+
+    Returns:
+        Success message
+
+    Raises:
+        UnauthorizedException: If old password is incorrect
+        ValidationException: If new password is invalid
+    """
+    await auth_service.change_password(
+        user_id=current_user['_id'],
+        old_password=request.old_password,
+        new_password=request.new_password
+    )
+
+    return {'message': 'Password changed successfully'}
