@@ -96,6 +96,7 @@ async def health_check():
 api_router.include_router(auth.router)
 api_router.include_router(digital_ids.router)
 api_router.include_router(passes.router)
+api_router.include_router(pass_advanced.router)
 api_router.include_router(emergency.router)
 api_router.include_router(notifications.router)
 api_router.include_router(visitors.router)
