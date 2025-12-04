@@ -59,7 +59,7 @@ class NotificationCreate(BaseModel):
     target_grades: Optional[List[str]] = None
     target_divisions: Optional[List[DivisionType]] = None
     target_user_ids: Optional[List[str]] = None
-    created_by: str
+    created_by: Optional[str] = None  # Made optional since it's set from auth token
     scheduled_at: Optional[datetime] = None
 
     class Config:
