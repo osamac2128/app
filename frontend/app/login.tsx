@@ -77,120 +77,41 @@ export default function LoginScreen() {
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
-                import React, {useState} from 'react';
-              import {
-                View,
-                Text,
-                TextInput,
-                TouchableOpacity,
-                StyleSheet,
-                KeyboardAvoidingView,
-                Platform,
-                ScrollView,
-                Alert,
-                ActivityIndicator,
-} from 'react-native';
-              import {useRouter} from 'expo-router';
-              import {useAuth} from '../contexts/AuthContext';
-              import {SafeAreaView} from 'react-native-safe-area-context';
+                secureTextEntry
+                editable={!loading}
+              />
+            </View>
 
-              export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-              const [password, setPassword] = useState('');
-              const [loading, setLoading] = useState(false);
-              const {login} = useAuth();
-              const router = useRouter();
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>Login</Text>
+              )}
+            </TouchableOpacity>
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-                Alert.alert('Error', 'Please fill in all fields');
-              return;
-    }
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => router.push('/register')}
+            >
+              <Text style={styles.secondaryButtonText}>Create Account</Text>
+            </TouchableOpacity>
 
-              setLoading(true);
-              try {
-                await login(email.toLowerCase().trim(), password);
-              router.replace('/(tabs)/home');
-    } catch (error: any) {
-                Alert.alert('Login Failed', error.message || 'Invalid credentials');
-    } finally {
-                setLoading(false);
-    }
-  };
-
-              return (
-              <SafeAreaView style={styles.container}>
-                <KeyboardAvoidingView
-                  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                  style={styles.container}
-                >
-                  <ScrollView
-                    contentContainerStyle={styles.content}
-                    keyboardShouldPersistTaps="handled"
-                  >
-                    <View style={styles.header}>
-                      <Text style={styles.title}>AISJ Connect</Text>
-                      <Text style={styles.subtitle}>Welcome back! Please login to continue.</Text>
-                    </View>
-
-                    <View style={styles.form}>
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Email</Text>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Enter your email"
-                          placeholderTextColor="#9CA3AF"
-                          value={email}
-                          onChangeText={setEmail}
-                          autoCapitalize="none"
-                          keyboardType="email-address"
-                          editable={!loading}
-                        />
-                      </View>
-
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Password</Text>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Enter your password"
-                          placeholderTextColor="#9CA3AF"
-                          value={password}
-                          onChangeText={setPassword}
-                          secureTextEntry
-                          editable={!loading}
-                        />
-                      </View>
-
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={handleLogin}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                          <Text style={styles.buttonText}>Login</Text>
-                        )}
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.secondaryButton}
-                        onPress={() => router.push('/register')}
-                      >
-                        <Text style={styles.secondaryButtonText}>Create Account</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.visitorButton}
-                        onPress={() => router.push('/visitor')}
-                      >
-                        <Text style={styles.visitorButtonText}>Visitor Check-in</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </ScrollView>
-                </KeyboardAvoidingView>
-              </SafeAreaView>
-              );
+            <TouchableOpacity
+              style={styles.visitorButton}
+              onPress={() => router.push('/visitor')}
+            >
+              <Text style={styles.visitorButtonText}>Visitor Check-in</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
               const styles = StyleSheet.create({
