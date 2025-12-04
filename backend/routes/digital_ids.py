@@ -16,9 +16,8 @@ class PhotoUploadResponse(BaseModel):
     status: str
 
 @router.get('/my-id', response_model=DigitalID)
-async def get_my_digital_id(current_user: dict = Depends(get_current_active_user)):
+async def get_my_digital_id(current_user: dict = Depends(get_current_active_user), db = Depends(get_database)):
     """Get current user's digital ID. Create one if it doesn't exist."""
-    db = get_database()
     user_id = str(current_user['_id'])
     
     # Try to find existing ID
