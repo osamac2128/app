@@ -216,7 +216,7 @@ class AISJBackendTester:
             return
         
         # Get dashboard stats
-        success, data, error = self.make_request('GET', '/admin/dashboard/stats', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/dashboard/stats', use_admin_token=True)
         if success:
             expected_fields = ['total_users', 'active_passes_count', 'pending_id_approvals', 'today_activity']
             missing_fields = [field for field in expected_fields if field not in data]
@@ -230,7 +230,7 @@ class AISJBackendTester:
             self.log_result("admin_dashboard", "dashboard_stats", False, None, error)
         
         # Get pass analytics
-        success, data, error = self.make_request('GET', '/admin/analytics/passes', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/analytics/passes', use_admin_token=True)
         if success:
             expected_fields = ['most_used_locations', 'average_duration_minutes', 'overtime_count']
             missing_fields = [field for field in expected_fields if field not in data]
@@ -244,7 +244,7 @@ class AISJBackendTester:
             self.log_result("admin_dashboard", "pass_analytics", False, None, error)
         
         # Get ID analytics
-        success, data, error = self.make_request('GET', '/admin/analytics/ids', auth_required=True)
+        success, data, error = self.make_request('GET', '/admin/analytics/ids', use_admin_token=True)
         if success:
             expected_fields = ['total_ids_issued', 'pending_approvals', 'rejected_photos']
             missing_fields = [field for field in expected_fields if field not in data]
