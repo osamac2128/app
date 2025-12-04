@@ -1,28 +1,41 @@
 #!/usr/bin/env python3
 """
-AISJ Connect Backend API Testing Suite
-Tests all backend endpoints comprehensively
+AISJ Connect Backend API Testing Suite - COMPREHENSIVE ADMIN TESTING
+Tests ALL backend endpoints including complete admin functionality
 """
 
 import requests
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 class AISJBackendTester:
     def __init__(self):
         # Use the production URL from frontend/.env
         self.base_url = "https://pull-create-app.preview.emergentagent.com/api"
+        self.admin_token = None
+        self.staff_token = None
         self.auth_token = None
         self.current_user = None
         self.test_results = {
             "authentication": {},
+            "admin_dashboard": {},
+            "admin_locations": {},
+            "admin_ids": {},
+            "admin_passes": {},
+            "emergency_system": {},
             "digital_ids": {},
             "passes": {},
             "notifications": {},
             "emergency": {},
             "summary": {"passed": 0, "failed": 0, "errors": []}
+        }
+        
+        # Admin credentials for comprehensive testing
+        self.admin_user = {
+            "email": "osama.chaudhry@gmail.com",
+            "password": "Test12345"
         }
         
         # Test user data
@@ -33,6 +46,24 @@ class AISJBackendTester:
             "last_name": "Johnson", 
             "role": "student",
             "phone": "+65 9123 4567"
+        }
+        
+        # Staff user for testing approval workflows
+        self.staff_user = {
+            "email": f"teacher_{datetime.now().strftime('%Y%m%d_%H%M%S')}@test.com",
+            "password": "Test12345",
+            "first_name": "Teacher",
+            "last_name": "Test",
+            "role": "staff",
+            "phone": "+1 555 0123"
+        }
+        
+        # Track created resources for cleanup
+        self.created_resources = {
+            'locations': [],
+            'users': [],
+            'passes': [],
+            'alerts': []
         }
         
         # Session for connection reuse
