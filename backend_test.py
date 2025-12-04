@@ -200,7 +200,7 @@ class AISJBackendTester:
         }
         
         success, data, error = self.make_request('POST', '/digital-ids/upload-photo', 
-                                                files=files)
+                                                data={}, files=files)
         self.log_result("digital_ids", "upload_photo", success,
                        f"Status: {data.get('status')}" if success else None, error)
 
