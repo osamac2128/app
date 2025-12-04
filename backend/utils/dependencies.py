@@ -7,7 +7,7 @@ from bson import ObjectId
 
 security = HTTPBearer()
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db = Depends(get_database)):
     """Dependency to get the current authenticated user."""
     token = credentials.credentials
     payload = decode_access_token(token)
@@ -28,7 +28,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     
     # Fetch user from database
-    db = get_database()
     user = await db.users.find_one({'_id': ObjectId(user_id)})
     
     if user is None:
