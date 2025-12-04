@@ -2,55 +2,55 @@
   "authentication": {
     "root_endpoint": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.396791",
+      "timestamp": "2025-12-04T14:32:14.239368",
       "details": "AISJ Connect API",
       "error": null
     },
     "health_check": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.405992",
+      "timestamp": "2025-12-04T14:32:14.285431",
       "details": "healthy",
       "error": null
     },
     "register": {
       "success": false,
-      "timestamp": "2025-12-04T14:31:37.421135",
+      "timestamp": "2025-12-04T14:32:14.298696",
       "details": null,
       "error": "HTTP 409: Email already registered"
     },
     "login": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.676646",
+      "timestamp": "2025-12-04T14:32:14.591173",
       "details": "Token received: True",
       "error": null
     },
     "get_current_user": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.683670",
+      "timestamp": "2025-12-04T14:32:14.601557",
       "details": "User: Sarah Updated Johnson",
       "error": null
     },
     "update_profile": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.691222",
+      "timestamp": "2025-12-04T14:32:14.651379",
       "details": "Updated name: Sarah Updated",
       "error": null
     },
     "logout": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.697224",
+      "timestamp": "2025-12-04T14:32:14.660227",
       "details": "Successfully logged out",
       "error": null
     },
     "invalid_login": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.919247",
+      "timestamp": "2025-12-04T14:32:14.848351",
       "details": "Correctly rejected invalid credentials",
       "error": "HTTP 401: Invalid email or password"
     },
     "no_auth_protection": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.924153",
+      "timestamp": "2025-12-04T14:32:14.857685",
       "details": "Correctly rejected unauthenticated request",
       "error": "HTTP 403: Not authenticated"
     }
@@ -58,13 +58,13 @@
   "digital_ids": {
     "get_my_id": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.748870",
+      "timestamp": "2025-12-04T14:32:14.666266",
       "details": "QR Code: AISJ:69319ab032cc693...",
       "error": null
     },
     "upload_photo": {
       "success": false,
-      "timestamp": "2025-12-04T14:31:37.796891",
+      "timestamp": "2025-12-04T14:32:14.671360",
       "details": null,
       "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     }
@@ -72,27 +72,33 @@
   "passes": {
     "get_locations": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.803905",
+      "timestamp": "2025-12-04T14:32:14.677404",
       "details": "Found 6 locations",
       "error": null
     },
     "request_pass": {
-      "success": false,
-      "timestamp": "2025-12-04T14:31:37.809611",
-      "details": null,
-      "error": "HTTP 422: [{'type': 'missing', 'loc': ['body', 'student_id'], 'msg': 'Field required', 'input': {'origin_location_id': '69312e0aa1d0993455537551', 'destination_location_id': '69312e0aa1d0993455537552', 'time_limit_minutes': 15, 'notes': 'Need to use restroom'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
+      "success": true,
+      "timestamp": "2025-12-04T14:32:14.734286",
+      "details": "Pass ID: 69319b6e5ca93fc6a29f6a4d",
+      "error": null
     },
     "get_active_pass": {
-      "success": false,
-      "timestamp": "2025-12-04T14:31:37.815660",
-      "details": null,
-      "error": "HTTP 404: No active pass found"
+      "success": true,
+      "timestamp": "2025-12-04T14:32:14.741216",
+      "details": "Active pass: 69319b6e5ca93fc6a29f6a4d",
+      "error": null
+    },
+    "end_pass": {
+      "success": true,
+      "timestamp": "2025-12-04T14:32:14.747533",
+      "details": "Pass ended: completed",
+      "error": null
     }
   },
   "notifications": {
     "get_my_notifications": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.863821",
+      "timestamp": "2025-12-04T14:32:14.794136",
       "details": "Found 0 notifications",
       "error": null
     }
@@ -100,19 +106,17 @@
   "emergency": {
     "get_active_alert": {
       "success": true,
-      "timestamp": "2025-12-04T14:31:37.913007",
+      "timestamp": "2025-12-04T14:32:14.842521",
       "details": "Active alert: False",
       "error": null
     }
   },
   "summary": {
-    "passed": 12,
-    "failed": 4,
+    "passed": 15,
+    "failed": 2,
     "errors": [
       "authentication.register: HTTP 409: Email already registered",
-      "digital_ids.upload_photo: HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
-      "passes.request_pass: HTTP 422: [{'type': 'missing', 'loc': ['body', 'student_id'], 'msg': 'Field required', 'input': {'origin_location_id': '69312e0aa1d0993455537551', 'destination_location_id': '69312e0aa1d0993455537552', 'time_limit_minutes': 15, 'notes': 'Need to use restroom'}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]",
-      "passes.get_active_pass: HTTP 404: No active pass found"
+      "digital_ids.upload_photo: HTTP 422: [{'type': 'missing', 'loc': ['body', 'file'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]"
     ]
   }
 }
