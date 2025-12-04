@@ -634,6 +634,125 @@ class AISJBackendTester:
         self.log_result("notifications", "get_my_notifications", success,
                        f"Found {len(notifications)} notifications" if success else None, error)
 
+    def test_admin_messages_announcements(self):
+        """Test Admin Messages/Announcements Feature - NEW FEATURE TESTING"""
+        print("\n📢 Testing Admin Messages/Announcements API...")
+        
+        if not self.admin_token:
+            self.log_result("notifications", "admin_messages_skipped", False, None, "No admin token available")
+            return
+        
+        # Store original token and switch to admin
+        original_token = self.auth_token
+        self.auth_token = self.admin_token
+        
+        # Test Scenario 1: Send announcement to all users
+        print("   Testing: Send announcement to all users...")
+        announcement_data = {
+            "title": "School Assembly Tomorrow",
+            "body": "All students and staff are required to attend the assembly at 9 AM tomorrow.",
+            "type": "announcement",
+            "target_roles": None  # All users
+        }
+        
+        success, data, error = self.make_request('POST', '/notifications/send', announcement_data)
+        announcement_id = data.get('_id') if success and data else None
+        
+        self.log_result("notifications", "send_announcement_all_users", success,
+                       f"Sent announcement to all users. ID: {announcement_id}" if success else None, error)
+        
+        # Test Scenario 2: Send urgent alert to students only
+        print("   Testing: Send urgent alert to students...")
+        urgent_data = {
+            "title": "Class Cancelled",
+            "body": "Math class is cancelled today due to teacher absence.",
+            "type": "urgent",
+            "target_roles": ["student"]
+        }
+        
+        success, data, error = self.make_request('POST', '/notifications/send', urgent_data)
+        urgent_id = data.get('_id') if success and data else None
+        
+        self.log_result("notifications", "send_urgent_students", success,
+                       f"Sent urgent alert to students. ID: {urgent_id}" if success else None, error)
+        
+        # Test Scenario 3: Send reminder to staff
+        print("   Testing: Send reminder to staff...")
+        reminder_data = {
+            "title": "Staff Meeting Reminder",
+            "body": "Don't forget the staff meeting at 3 PM in the conference room.",
+            "type": "reminder",
+            "target_roles": ["staff"]
+        }
+        
+        success, data, error = self.make_request('POST', '/notifications/send', reminder_data)
+        reminder_id = data.get('_id') if success and data else None
+        
+        self.log_result("notifications", "send_reminder_staff", success,
+                       f"Sent reminder to staff. ID: {reminder_id}" if success else None, error)
+        
+        # Test Scenario 4: Fetch sent notifications
+        print("   Testing: Fetch sent notifications...")
+        success, data, error = self.make_request('GET', '/notifications/sent')
+        
+        if success and isinstance(data, list):
+            notification_count = len(data)
+            has_recipient_counts = any("recipient_count" in n for n in data) if data else False
+            
+            # Verify structure of notifications
+            valid_structure = True
+            if data:
+                required_fields = ["_id", "title", "body", "type", "status", "created_by", "created_at"]
+                sample_notification = data[0]
+                valid_structure = all(field in sample_notification for field in required_fields)
+            
+            self.log_result("notifications", "fetch_sent_notifications", success and valid_structure,
+                           f"Retrieved {notification_count} sent notifications. Has recipient counts: {has_recipient_counts}" if success else None, 
+                           error if not success else ("Invalid notification structure" if not valid_structure else None))
+        else:
+            self.log_result("notifications", "fetch_sent_notifications", False,
+                           None, "Response is not a list or request failed")
+        
+        # Test Error Cases
+        print("   Testing: Error cases...")
+        
+        # Test missing required fields
+        invalid_data = {
+            "type": "announcement"
+            # Missing title and body
+        }
+        
+        success, data, error = self.make_request('POST', '/notifications/send', invalid_data)
+        # Should fail with 400 or 422
+        validation_works = not success and (error and ("422" in str(error) or "400" in str(error)))
+        
+        self.log_result("notifications", "validation_missing_fields", validation_works,
+                       "Correctly rejected notification with missing fields" if validation_works else None,
+                       "Should have rejected invalid data" if not validation_works else None)
+        
+        # Test unauthorized access (temporarily remove auth)
+        temp_token = self.auth_token
+        self.auth_token = None
+        
+        valid_data = {
+            "title": "Test",
+            "body": "Test message",
+            "type": "general"
+        }
+        
+        success, data, error = self.make_request('POST', '/notifications/send', valid_data)
+        # Should fail with 401
+        auth_works = not success and (error and "401" in str(error))
+        
+        self.log_result("notifications", "unauthorized_access", auth_works,
+                       "Correctly rejected unauthorized request" if auth_works else None,
+                       "Should have rejected unauthorized request" if not auth_works else None)
+        
+        # Restore tokens
+        self.auth_token = temp_token
+        if original_token:
+            self.auth_token = original_token
+
     def test_emergency_api(self):
         """Test Emergency endpoints"""
         print("\n🚨 Testing Emergency API...")
