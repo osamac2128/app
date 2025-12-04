@@ -99,6 +99,7 @@ api_router.include_router(passes.router)
 api_router.include_router(emergency.router)
 api_router.include_router(notifications.router)
 api_router.include_router(visitors.router)
+api_router.include_router(admin.router)
 
 # Include the router in the main app
 app.include_router(api_router)
