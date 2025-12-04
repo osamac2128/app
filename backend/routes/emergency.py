@@ -28,10 +28,10 @@ async def get_active_alert(current_user: dict = Depends(get_current_active_user)
 @router.post('/trigger', response_model=EmergencyAlert)
 async def trigger_alert(
     alert_data: EmergencyAlertCreate,
-    current_user: dict = Depends(require_role(UserRole.ADMIN))
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
 ):
     """(Admin only) Trigger a new emergency alert."""
-    # db = get_database() - FIXED
     
     # Check if there's already an active alert
     existing_alert = await db.emergency_alerts.find_one({'resolved_at': None})
