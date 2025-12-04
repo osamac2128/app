@@ -257,7 +257,7 @@ export default function AdminMessagesScreen() {
                   </View>
                 </View>
 
-                <Text style={styles.messageContent}>{notification.message}</Text>
+                <Text style={styles.messageContent}>{notification.body}</Text>
 
                 <View style={styles.messageFooter}>
                   <Text style={styles.messageDate}>
