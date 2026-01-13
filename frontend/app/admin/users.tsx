@@ -121,7 +121,7 @@ export default function UsersManagementScreen() {
     
     try {
       await axios.post(
-        `${API_URL}/api/admin/users/${user.id}/${action}`,
+        `${API_URL}/api/admin/users/${user._id}/${action}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
