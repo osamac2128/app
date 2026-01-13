@@ -57,14 +57,6 @@ export default function UsersManagementScreen() {
       setRefreshing(false);
     }
   };
-    } catch (error: any) {
-      console.error('Error fetching users:', error);
-      Alert.alert('Error', 'Failed to load users');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
 
   useEffect(() => {
     fetchUsers();
