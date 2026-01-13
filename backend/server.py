@@ -104,14 +104,9 @@ api_router.include_router(visitors.router)
 api_router.include_router(visitor_enhanced.router)
 api_router.include_router(admin.router)
 api_router.include_router(user_management.router)
-api_router.include_router(push_notifications.router)
-api_router.include_router(realtime.router)
 
 # Include the router in the main app
 app.include_router(api_router)
-
-# Create Socket.IO ASGI app wrapper
-socket_app = socketio.ASGIApp(sio, app)
 
 # CORS middleware
 app.add_middleware(
