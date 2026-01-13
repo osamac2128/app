@@ -3,7 +3,6 @@ from datetime import datetime
 from fastapi import FastAPI, APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
-import socketio
 import logging
 from pathlib import Path
 
@@ -11,10 +10,9 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.database import db
 from app.core.exceptions import AppException
-from app.core.websocket import sio
 
 # Import routes
-from routes import auth, digital_ids, passes, emergency, notifications, visitors, admin, user_management, pass_advanced, visitor_enhanced, emergency_checkin, push_notifications, realtime
+from routes import auth, digital_ids, passes, emergency, notifications, visitors, admin, user_management, pass_advanced, visitor_enhanced, emergency_checkin
 
 # Configure logging
 logging.basicConfig(
