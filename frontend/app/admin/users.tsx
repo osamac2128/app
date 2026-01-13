@@ -39,21 +39,24 @@ export default function UsersManagementScreen() {
 
   const fetchUsers = async () => {
     try {
-      // Since we don't have a specific endpoint, we'll fetch from admin stats
-      // In production, you'd have a GET /api/admin/users endpoint
-      const response = await axios.get(`${API_URL}/api/admin/dashboard/stats`, {
+      const response = await axios.get(`${API_URL}/api/admin/users`, {
+        params: {
+          role: selectedRole !== 'all' ? selectedRole : undefined,
+          search: searchQuery || undefined,
+        },
         headers: { Authorization: `Bearer ${token}` },
       });
       
-      // For now, we'll show a placeholder message
-      // In production, you'd fetch actual user list
-      Alert.alert(
-        'Feature Info',
-        'User management endpoint is not yet implemented in the backend. This screen shows the UI design.'
-      );
-      
-      setUsers([]);
-      setFilteredUsers([]);
+      setUsers(response.data);
+      setFilteredUsers(response.data);
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      Alert.alert('Error', 'Failed to load users');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
     } catch (error: any) {
       console.error('Error fetching users:', error);
       Alert.alert('Error', 'Failed to load users');
