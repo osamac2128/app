@@ -9,11 +9,14 @@ import {
   Dimensions,
   Alert,
   Image,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import QRCode from 'react-native-qrcode-svg';
 import * as ImagePicker from 'expo-image-picker';
+import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { API_URL } from '../../contexts/AuthContext';
@@ -34,12 +37,21 @@ interface DigitalID {
   issued_at: string;
 }
 
+const BIOMETRIC_ENABLED_KEY = '@id_biometric_enabled';
+
 export default function IDCardScreen() {
   const { user, token } = useAuth();
   const [digitalId, setDigitalId] = useState<DigitalID | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Biometric authentication states
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('Biometric');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingBiometric, setCheckingBiometric] = useState(true);
 
   const flipAnimation = useRef(new Animated.Value(0)).current;
   const frontInterpolate = flipAnimation.interpolate({
@@ -52,8 +64,109 @@ export default function IDCardScreen() {
   });
 
   useEffect(() => {
-    fetchDigitalID();
+    checkBiometricAvailability();
+    loadBiometricPreference();
   }, []);
+
+  useEffect(() => {
+    if (!checkingBiometric) {
+      if (biometricEnabled) {
+        authenticateWithBiometric();
+      } else {
+        setIsAuthenticated(true);
+        fetchDigitalID();
+      }
+    }
+  }, [checkingBiometric, biometricEnabled]);
+
+  const checkBiometricAvailability = async () => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      setBiometricAvailable(compatible && enrolled);
+
+      if (compatible) {
+        const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+          setBiometricType('Face ID');
+        } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+          setBiometricType('Touch ID');
+        } else {
+          setBiometricType('Biometric');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+    }
+  };
+
+  const loadBiometricPreference = async () => {
+    try {
+      const enabled = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
+      setBiometricEnabled(enabled === 'true');
+    } catch (error) {
+      console.error('Error loading biometric preference:', error);
+    } finally {
+      setCheckingBiometric(false);
+    }
+  };
+
+  const saveBiometricPreference = async (enabled: boolean) => {
+    try {
+      await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, enabled.toString());
+      setBiometricEnabled(enabled);
+
+      if (enabled) {
+        // Verify biometric works before enabling
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: `Verify ${biometricType} to enable`,
+          fallbackLabel: 'Use Passcode',
+          disableDeviceFallback: false,
+        });
+
+        if (!result.success) {
+          await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, 'false');
+          setBiometricEnabled(false);
+          Alert.alert('Authentication Failed', `${biometricType} verification failed. Protection not enabled.`);
+          return;
+        }
+      }
+
+      Alert.alert(
+        enabled ? 'Protection Enabled' : 'Protection Disabled',
+        enabled
+          ? `Your ID card is now protected with ${biometricType}.`
+          : 'Your ID card is no longer protected with biometric authentication.'
+      );
+    } catch (error) {
+      console.error('Error saving biometric preference:', error);
+    }
+  };
+
+  const authenticateWithBiometric = async () => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: `Authenticate to view your ID Card`,
+        fallbackLabel: 'Use Passcode',
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        setIsAuthenticated(true);
+        fetchDigitalID();
+      } else {
+        Alert.alert(
+          'Authentication Required',
+          'Please authenticate to view your ID card.',
+          [{ text: 'Try Again', onPress: authenticateWithBiometric }]
+        );
+      }
+    } catch (error) {
+      console.error('Biometric authentication error:', error);
+      setIsAuthenticated(true); // Fallback to showing ID if biometric fails
+      fetchDigitalID();
+    }
+  };
 
   const fetchDigitalID = async () => {
     try {
@@ -142,11 +255,39 @@ export default function IDCardScreen() {
     }
   };
 
-  if (loading) {
+  if (checkingBiometric || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#1E3A5F" />
       </View>
+    );
+  }
+
+  // Show authentication lock screen if biometric is enabled but not authenticated
+  if (biometricEnabled && !isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.lockContainer}>
+          <View style={styles.lockIconContainer}>
+            <Ionicons
+              name={biometricType === 'Face ID' ? 'scan' : 'finger-print'}
+              size={80}
+              color="#1E3A5F"
+            />
+          </View>
+          <Text style={styles.lockTitle}>ID Card Locked</Text>
+          <Text style={styles.lockSubtitle}>
+            Your ID card is protected with {biometricType}
+          </Text>
+          <TouchableOpacity
+            style={styles.unlockButton}
+            onPress={authenticateWithBiometric}
+          >
+            <Ionicons name="lock-open" size={20} color="#FFFFFF" />
+            <Text style={styles.unlockButtonText}>Unlock with {biometricType}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -242,6 +383,32 @@ export default function IDCardScreen() {
               </>
             )}
           </TouchableOpacity>
+
+          {/* Biometric Protection Toggle */}
+          {biometricAvailable && (
+            <View style={styles.biometricContainer}>
+              <View style={styles.biometricInfo}>
+                <Ionicons
+                  name={biometricType === 'Face ID' ? 'scan' : 'finger-print'}
+                  size={24}
+                  color="#1E3A5F"
+                />
+                <View style={styles.biometricTextContainer}>
+                  <Text style={styles.biometricTitle}>{biometricType} Protection</Text>
+                  <Text style={styles.biometricSubtitle}>
+                    Require authentication to view ID
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={biometricEnabled}
+                onValueChange={saveBiometricPreference}
+                trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
+                thumbColor={biometricEnabled ? '#1E3A5F' : '#F4F4F5'}
+                ios_backgroundColor="#D1D5DB"
+              />
+            </View>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -424,6 +591,82 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   uploadButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Biometric protection styles
+  biometricContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  biometricInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  biometricTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  biometricTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  biometricSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  // Lock screen styles
+  lockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  lockIconContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  lockTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E3A5F',
+    marginBottom: 8,
+  },
+  lockSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  unlockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E3A5F',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  unlockButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',

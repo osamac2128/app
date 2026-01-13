@@ -124,3 +124,183 @@ async def approve_photo(
     )
     
     return {"message": f"Photo {'approved' if approved else 'rejected'}"}
+
+
+@router.get('/scan/{qr_code}')
+async def scan_id(
+    qr_code: str,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Staff/Admin) Scan a QR code to verify a digital ID."""
+
+    # Find the digital ID by QR code
+    digital_id = await db.digital_ids.find_one({'qr_code': qr_code})
+
+    if not digital_id:
+        raise HTTPException(status_code=404, detail="Digital ID not found")
+
+    if not digital_id.get('is_active'):
+        raise HTTPException(status_code=400, detail="This ID has been deactivated")
+
+    # Get user information
+    user = await db.users.find_one({'_id': ObjectId(digital_id['user_id'])})
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Log the scan
+    scan_log = {
+        'digital_id_id': str(digital_id['_id']),
+        'scanned_by': str(current_user['_id']),
+        'scanned_at': datetime.utcnow(),
+        'location': None,  # Could be passed as query param
+        'purpose': 'verification',
+        'created_at': datetime.utcnow()
+    }
+    await db.id_scan_logs.insert_one(scan_log)
+
+    return {
+        'valid': True,
+        'user': {
+            '_id': str(user['_id']),
+            'first_name': user.get('first_name'),
+            'last_name': user.get('last_name'),
+            'email': user.get('email'),
+            'role': user.get('role'),
+            'status': user.get('status')
+        },
+        'digital_id': {
+            '_id': str(digital_id['_id']),
+            'qr_code': digital_id.get('qr_code'),
+            'barcode': digital_id.get('barcode'),
+            'photo_url': digital_id.get('photo_url'),
+            'is_active': digital_id.get('is_active'),
+            'issued_at': digital_id.get('issued_at')
+        }
+    }
+
+
+@router.get('/admin/pending-photos')
+async def get_pending_photos(
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Staff/Admin) Get all digital IDs with pending photo approval."""
+
+    pending_ids = await db.digital_ids.find({
+        'photo_status': PhotoStatus.PENDING,
+        'submitted_photo_url': {'$ne': None}
+    }).to_list(length=100)
+
+    result = []
+    for digital_id in pending_ids:
+        user = await db.users.find_one({'_id': ObjectId(digital_id['user_id'])})
+        if user:
+            result.append({
+                '_id': str(digital_id['_id']),
+                'user_id': digital_id['user_id'],
+                'user_name': f"{user.get('first_name', '')} {user.get('last_name', '')}",
+                'user_role': user.get('role'),
+                'submitted_photo_url': digital_id.get('submitted_photo_url'),
+                'photo_status': digital_id.get('photo_status'),
+                'updated_at': digital_id.get('updated_at')
+            })
+
+    return result
+
+
+@router.post('/admin/deactivate/{id_id}')
+async def deactivate_id(
+    id_id: str,
+    reason: str = "Admin deactivation",
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
+):
+    """(Admin only) Deactivate a digital ID."""
+
+    digital_id = await db.digital_ids.find_one({'_id': ObjectId(id_id)})
+    if not digital_id:
+        raise HTTPException(status_code=404, detail="Digital ID not found")
+
+    await db.digital_ids.update_one(
+        {'_id': ObjectId(id_id)},
+        {
+            '$set': {
+                'is_active': False,
+                'deactivated_at': datetime.utcnow(),
+                'deactivation_reason': reason,
+                'deactivated_by': str(current_user['_id']),
+                'updated_at': datetime.utcnow()
+            }
+        }
+    )
+
+    return {"message": "Digital ID deactivated successfully"}
+
+
+@router.post('/admin/reactivate/{id_id}')
+async def reactivate_id(
+    id_id: str,
+    current_user: dict = Depends(require_role(UserRole.ADMIN)),
+    db = Depends(get_database)
+):
+    """(Admin only) Reactivate a digital ID."""
+
+    digital_id = await db.digital_ids.find_one({'_id': ObjectId(id_id)})
+    if not digital_id:
+        raise HTTPException(status_code=404, detail="Digital ID not found")
+
+    await db.digital_ids.update_one(
+        {'_id': ObjectId(id_id)},
+        {
+            '$set': {
+                'is_active': True,
+                'deactivated_at': None,
+                'deactivation_reason': None,
+                'reactivated_by': str(current_user['_id']),
+                'updated_at': datetime.utcnow()
+            }
+        }
+    )
+
+    return {"message": "Digital ID reactivated successfully"}
+
+
+@router.get('/scan-history')
+async def get_scan_history(
+    limit: int = 50,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Staff/Admin) Get recent ID scan history."""
+
+    scans = await db.id_scan_logs.find().sort('scanned_at', -1).limit(limit).to_list(length=limit)
+
+    result = []
+    for scan in scans:
+        # Get scanned user info
+        digital_id = await db.digital_ids.find_one({'_id': ObjectId(scan['digital_id_id'])})
+        scanned_user = None
+        if digital_id:
+            scanned_user = await db.users.find_one({'_id': ObjectId(digital_id['user_id'])})
+
+        # Get scanner info
+        scanner = await db.users.find_one({'_id': ObjectId(scan['scanned_by'])})
+
+        result.append({
+            '_id': str(scan['_id']),
+            'scanned_at': scan.get('scanned_at'),
+            'scanned_user': {
+                'name': f"{scanned_user.get('first_name', '')} {scanned_user.get('last_name', '')}" if scanned_user else 'Unknown',
+                'role': scanned_user.get('role') if scanned_user else None
+            } if scanned_user else None,
+            'scanned_by': {
+                'name': f"{scanner.get('first_name', '')} {scanner.get('last_name', '')}" if scanner else 'Unknown',
+                'role': scanner.get('role') if scanner else None
+            } if scanner else None,
+            'purpose': scan.get('purpose'),
+            'location': scan.get('location')
+        })
+
+    return result
