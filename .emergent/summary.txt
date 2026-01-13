@@ -1,0 +1,415 @@
+<analysis>
+<original_problem_statement>
+The user initially reported that the Messages button on the admin dashboard was not functional. After the agent started working on it, the user added two more issues:
+1. The Users button in the admin panel is not linked.
+2. The + button on the Emergency screen is not linked.
+
+Subsequently, the user requested a full review of the application to identify and complete all missing functionalities based on the project's roadmap. The user then approved a 3-phase plan to implement all high-priority missing features, which the previous agent started working on.
+
+Finally, the user reported a frontend build error: .
+</original_problem_statement>
+
+**User's preferred language**: English
+
+**what currently exists?**
+The project is a full-stack mobile application with a FastAPI backend and an Expo/React Native frontend.
+
+The previous agent implemented a significant number of backend features as part of a 3-phase plan to add missing functionality. This includes new API routes for advanced user management, enhanced visitor and pass systems, and security hardening. Many of these backend modules have been created and registered in the main server file.
+
+The frontend is in an unstable state. The agent attempted to fix a series of build errors by installing missing packages like , , and . While the backend services appear to be running, the frontend Expo bundler was still showing errors and warnings at the end of the session, making it unclear if the application is runnable.
+
+**Last working item**:
+    - Last item agent was working: The agent was troubleshooting a series of frontend bundling failures. The user reported an error about  being unresolvable. The agent installed this package, which then revealed another missing package, . After installing multiple packages, the agent restarted the services but did not fully confirm that the bundling process was successful without errors before finishing. The goal was to stabilize the frontend environment so development could continue.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? Frontend testing agent
+    - User Testing Done: N
+
+**All Pending/In progress Issue list**:
+  - Issue 1: Frontend build is unstable and likely broken (P0)
+  - Issue 2: Backend features from Phase 1 & 2 are not tested (P1)
+  - Issue 3: Mismatched NPM package versions (P2)
+  
+  Issues Detail:
+  - Issue 1: 
+     - Attempted fixes: The agent installed several missing packages: , , , and . It also restarted the expo server and cleared the cache. However, the last logs still showed bundling failures and warnings.
+     - Next debug checklist: 
+        1. Stop all services.
+        2. Run yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+Done in 0.57s. in  to ensure all dependencies are correctly installed.
+        3. Clear the metro bundler cache again: [17:02:58] Starting project at /app/frontend.
+        4. Carefully examine the Expo logs for the *first* error that appears, as subsequent errors might be cascading.
+        5. Check  for any version conflicts or issues.
+        6. Address the warnings about mismatched package versions (see Issue 3).
+     - Why fix this issue and what will be achieved with the fix? The frontend is currently not buildable, which blocks all further development, testing, and user verification. Fixing this will restore the development environment.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+
+  - Issue 2: 
+     - Attempted fixes: None. The features were just added.
+     - Next debug checklist: 
+        1. After the frontend is stable, update  with new test cases for the recently added backend features.
+        2. Run the  agent to perform a full regression and feature test on all new endpoints (, , , ).
+     - Why fix this issue and what will be achieved with the fix? To ensure the new backend APIs implemented in Phase 1 and 2 are functional, secure, and free of bugs before building the frontend UIs that depend on them.
+     - Status:  NOT STARTED
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: None
+
+  - Issue 3:
+      - Attempted fixes: None. The agent noted the warnings but did not act on them.
+      - Next debug checklist:
+        1. Examine the Expo logs from Message 238 which state: .
+        2. Run env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT
+Running 17 checks on your project...
+13/17 checks passed. 4 checks failed. Possible issues detected:
+Use the --verbose flag to see more details about passed checks.
+
+✖ Check for lock file
+Multiple lock files detected (yarn.lock, package-lock.json). This may result in unexpected behavior in CI environments, such as EAS Build, which infer the package manager from the lock file.
+Advice:
+Remove any lock files for package managers you are not using.
+
+✖ Check Expo config (app.json/ app.config.js) schema
+Errors validating fields in /app/frontend/app.json:
+ Field: androidStatusBar/backgroundColor - 'androidStatusBar/backgroundColor' should be a 6 character long hex color string `'#RRGGBB'`, for example, `'#000000'` for black. Or 8 character long hex color string `'#RRGGBBAA'`, for example, `'#00000088'` for semi-transparent black..
+ Field: android/adaptiveIcon/backgroundColor - 'android/adaptiveIcon/backgroundColor' should be a 6 character long hex color string, for example, `'#000000'`.
+Error validating asset fields in /app/frontend/app.json:
+ Field: icon - image should be square, but the file at './assets/images/icon.png' has dimensions 512x513.
+ Field: Android.adaptiveIcon.foregroundImage - image should be square, but the file at './assets/images/adaptive-icon.png' has dimensions 512x513.
+Advice:
+Resolve schema errors in your app config. Learn more: https://docs.expo.dev/workflow/configuration/
+
+✖ Check that no duplicate dependencies are installed
+Your project contains duplicate native module dependencies, which should be de-duplicated.
+Native builds may only contain one version of any given native module, and having multiple versions of a single Native module installed may lead to unexpected build errors.
+Found duplicates for @expo/vector-icons:
+  ├─ @expo/vector-icons@14.1.0 (at: node_modules/@expo/vector-icons)
+  └─ @expo/vector-icons@15.0.3 (at: node_modules/expo/node_modules/@expo/vector-icons)
+Found duplicates for expo-constants:
+  ├─ expo-constants@17.1.7 (at: node_modules/expo-constants)
+  ├─ expo-constants@18.0.13 (at: node_modules/expo/node_modules/expo-constants)
+  ├─ expo-constants@18.0.13 (at: node_modules/expo-asset/node_modules/expo-constants)
+  └─ expo-constants@17.1.8 (at: node_modules/expo-notifications/node_modules/expo-constants)
+Found duplicates for expo-font:
+  ├─ expo-font@13.3.2 (at: node_modules/expo-font)
+  └─ expo-font@14.0.10 (at: node_modules/expo/node_modules/expo-font)
+Found duplicates for expo-image-loader:
+  ├─ expo-image-loader@4.7.0 (at: node_modules/expo-image-loader)
+  └─ expo-image-loader@6.0.0 (at: node_modules/expo-image-picker/node_modules/expo-image-loader)
+Advice:
+Resolve your dependency issues and deduplicate your dependencies. Learn more: https://expo.fyi/resolving-dependency-issues
+
+✖ Check that packages match versions required by installed Expo SDK
+
+❗ Major version mismatches
+package                                 expected  found    
+@expo/vector-icons                      ^15.0.3   14.1.0   
+expo-constants                          ~18.0.13  17.1.7   
+expo-device                             ~8.0.10   7.1.4    
+expo-font                               ~14.0.10  13.3.2   
+expo-haptics                            ~15.0.8   14.1.4   
+expo-image                              ~3.0.11   2.4.1    
+expo-linking                            ~8.0.11   7.1.7    
+expo-router                             ~6.0.21   5.1.7    
+expo-splash-screen                      ~31.0.13  0.30.10  
+expo-status-bar                         ~3.0.9    2.2.3    
+expo-symbols                            ~1.0.8    0.4.5    
+expo-system-ui                          ~6.0.9    5.0.11   
+expo-web-browser                        ~15.0.10  14.2.0   
+react-native-reanimated                 ~4.1.1    3.17.5   
+eslint-config-expo                      ~10.0.0   9.2.0    
+
+⚠️ Minor version mismatches
+package                                 expected  found    
+@react-native-community/datetimepicker  8.4.4     8.6.0    
+expo-notifications                      ~0.32.16  0.30.7   
+react                                   19.1.0    19.0.0   
+react-dom                               19.1.0    19.0.0   
+react-native                            0.81.5    0.79.5   
+react-native-gesture-handler            ~2.28.0   2.24.0   
+react-native-screens                    ~4.16.0   4.11.1   
+react-native-svg                        15.12.1   15.15.1  
+react-native-web                        ^0.21.0   0.20.0   
+react-native-webview                    13.15.0   13.13.5  
+@types/react                            ~19.1.10  19.0.14  
+typescript                              ~5.9.2    5.8.3    
+
+🔧 Patch version mismatches
+package                                 expected  found    
+@react-native-picker/picker             2.11.1    2.11.4   
+expo-blur                               ~15.0.8   15.0.7   
+expo-image-picker                       ~17.0.10  17.0.8   
+
+Changelogs:
+- expo-blur → https://github.com/expo/expo/blob/sdk-54/packages/expo-blur/CHANGELOG.md
+- expo-constants → https://github.com/expo/expo/blob/sdk-54/packages/expo-constants/CHANGELOG.md
+- expo-device → https://github.com/expo/expo/blob/sdk-54/packages/expo-device/CHANGELOG.md
+- expo-font → https://github.com/expo/expo/blob/sdk-54/packages/expo-font/CHANGELOG.md
+- expo-haptics → https://github.com/expo/expo/blob/sdk-54/packages/expo-haptics/CHANGELOG.md
+- expo-image → https://github.com/expo/expo/blob/sdk-54/packages/expo-image/CHANGELOG.md
+- expo-image-picker → https://github.com/expo/expo/blob/sdk-54/packages/expo-image-picker/CHANGELOG.md
+- expo-linking → https://github.com/expo/expo/blob/sdk-54/packages/expo-linking/CHANGELOG.md
+- expo-notifications → https://github.com/expo/expo/blob/sdk-54/packages/expo-notifications/CHANGELOG.md
+- expo-router → https://github.com/expo/expo/blob/sdk-54/packages/expo-router/CHANGELOG.md
+- expo-splash-screen → https://github.com/expo/expo/blob/sdk-54/packages/expo-splash-screen/CHANGELOG.md
+- expo-status-bar → https://github.com/expo/expo/blob/sdk-54/packages/expo-status-bar/CHANGELOG.md
+- expo-symbols → https://github.com/expo/expo/blob/sdk-54/packages/expo-symbols/CHANGELOG.md
+- expo-system-ui → https://github.com/expo/expo/blob/sdk-54/packages/expo-system-ui/CHANGELOG.md
+- expo-web-browser → https://github.com/expo/expo/blob/sdk-54/packages/expo-web-browser/CHANGELOG.md
+
+30 packages out of date.
+Advice:
+Use 'npx expo install --check' to review and upgrade your dependencies.
+To ignore specific packages, add them to "expo.install.exclude" in package.json. Learn more: https://expo.fyi/dependency-validation in the  directory to identify and automatically fix dependency mismatches.
+        3. If  cannot fix it, manually adjust the versions in  as recommended and run yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+Done in 0.34s..
+      - Why fix this issue and what will be achieved with this? Mismatched dependencies can cause subtle runtime bugs and unpredictable behavior. Aligning the versions will improve app stability.
+      - Status: NOT STARTED
+      - Is recurring issue? N
+      - Should Test frontend/backend/both after fix? frontend
+      - Blocked on other issue: None
+
+**In progress Task List**:
+  - Task 1: Complete Phase 2 Frontend Integration (P1)
+  
+ Task Detail:
+  - Task 1: 
+     - Where to resume: The agent started connecting the  screen to the backend API. This file needs to be completed to handle user actions (view, edit, delete, add) by calling the new  endpoints. Additionally, new frontend screens need to be created and integrated for the  and  features.
+     - What will be achieved with this? This will make the new backend features accessible to administrators through the app's UI.
+     - Status:  IN PROGRESS
+     - Should Test frontend/backend/both after fix? both
+     - Blocked on something: Issue 1: Frontend build is unstable.
+
+**Upcoming and Future Tasks**
+    Upcoming Tasks:
+    - **P0: Complete Phase 2**: Finish the frontend integration for User Management, Enhanced Visitor System, and Emergency Check-in system.
+    - **P1: Implement Phase 3**: Implement the real-time infrastructure and push notifications. This involves:
+      - Backend: Installing  and correctly integrating it into  (the agent previously failed at this).
+      - Frontend: Setting up a WebSocket client to listen for real-time updates.
+      - Push Notifications: Integrating a service like Firebase Cloud Messaging (FCM), which will require user credentials.
+    Future Tasks:
+    - A full UX/UI polish pass to ensure consistency and a high-quality user experience, as identified in .
+    - Implementation of any other lower-priority features listed in  or  that were not part of the 3-phase plan.
+
+**Completed work in this session**
+- List of all completed tasks with file and method name:
+  - **Backend Features (Phase 1 & 2):**
+    - Created User Management routes: 
+    - Created Advanced Pass routes: 
+    - Created Security middleware: 
+    - Created Enhanced Visitor routes: 
+    - Created Emergency Check-in routes: 
+    - Registered all new routers in .
+  - **Issue Resolution:**
+    - Resolved backend crashes by removing premature Phase 3 imports (, ) from .
+    - Created placeholder screens to fix navigation crashes:  and .
+- Recently completed:
+  - Installed missing Python dependencies (, , ).
+  - Attempted to resolve frontend build failures by installing multiple npm packages.
+
+**Earlier issues found/mentioned but not fixed**
+   - Issue 1: NPM package version mismatches.
+     - Debug checklist: The logs in Message 238 show warnings like . The agent acknowledged these but did not fix them. The next agent should run env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT
+Running 17 checks on your project...
+13/17 checks passed. 4 checks failed. Possible issues detected:
+Use the --verbose flag to see more details about passed checks.
+
+✖ Check for lock file
+Multiple lock files detected (yarn.lock, package-lock.json). This may result in unexpected behavior in CI environments, such as EAS Build, which infer the package manager from the lock file.
+Advice:
+Remove any lock files for package managers you are not using.
+
+✖ Check Expo config (app.json/ app.config.js) schema
+Errors validating fields in /app/frontend/app.json:
+ Field: androidStatusBar/backgroundColor - 'androidStatusBar/backgroundColor' should be a 6 character long hex color string `'#RRGGBB'`, for example, `'#000000'` for black. Or 8 character long hex color string `'#RRGGBBAA'`, for example, `'#00000088'` for semi-transparent black..
+ Field: android/adaptiveIcon/backgroundColor - 'android/adaptiveIcon/backgroundColor' should be a 6 character long hex color string, for example, `'#000000'`.
+Error validating asset fields in /app/frontend/app.json:
+ Field: Android.adaptiveIcon.foregroundImage - image should be square, but the file at './assets/images/adaptive-icon.png' has dimensions 512x513.
+ Field: icon - image should be square, but the file at './assets/images/icon.png' has dimensions 512x513.
+Advice:
+Resolve schema errors in your app config. Learn more: https://docs.expo.dev/workflow/configuration/
+
+✖ Check that no duplicate dependencies are installed
+Your project contains duplicate native module dependencies, which should be de-duplicated.
+Native builds may only contain one version of any given native module, and having multiple versions of a single Native module installed may lead to unexpected build errors.
+Found duplicates for @expo/vector-icons:
+  ├─ @expo/vector-icons@14.1.0 (at: node_modules/@expo/vector-icons)
+  └─ @expo/vector-icons@15.0.3 (at: node_modules/expo/node_modules/@expo/vector-icons)
+Found duplicates for expo-constants:
+  ├─ expo-constants@17.1.7 (at: node_modules/expo-constants)
+  ├─ expo-constants@18.0.13 (at: node_modules/expo/node_modules/expo-constants)
+  ├─ expo-constants@18.0.13 (at: node_modules/expo-asset/node_modules/expo-constants)
+  └─ expo-constants@17.1.8 (at: node_modules/expo-notifications/node_modules/expo-constants)
+Found duplicates for expo-font:
+  ├─ expo-font@13.3.2 (at: node_modules/expo-font)
+  └─ expo-font@14.0.10 (at: node_modules/expo/node_modules/expo-font)
+Found duplicates for expo-image-loader:
+  ├─ expo-image-loader@4.7.0 (at: node_modules/expo-image-loader)
+  └─ expo-image-loader@6.0.0 (at: node_modules/expo-image-picker/node_modules/expo-image-loader)
+Advice:
+Resolve your dependency issues and deduplicate your dependencies. Learn more: https://expo.fyi/resolving-dependency-issues
+
+✖ Check that packages match versions required by installed Expo SDK
+
+❗ Major version mismatches
+package                                 expected  found    
+@expo/vector-icons                      ^15.0.3   14.1.0   
+expo-constants                          ~18.0.13  17.1.7   
+expo-device                             ~8.0.10   7.1.4    
+expo-font                               ~14.0.10  13.3.2   
+expo-haptics                            ~15.0.8   14.1.4   
+expo-image                              ~3.0.11   2.4.1    
+expo-linking                            ~8.0.11   7.1.7    
+expo-router                             ~6.0.21   5.1.7    
+expo-splash-screen                      ~31.0.13  0.30.10  
+expo-status-bar                         ~3.0.9    2.2.3    
+expo-symbols                            ~1.0.8    0.4.5    
+expo-system-ui                          ~6.0.9    5.0.11   
+expo-web-browser                        ~15.0.10  14.2.0   
+react-native-reanimated                 ~4.1.1    3.17.5   
+eslint-config-expo                      ~10.0.0   9.2.0    
+
+⚠️ Minor version mismatches
+package                                 expected  found    
+@react-native-community/datetimepicker  8.4.4     8.6.0    
+expo-notifications                      ~0.32.16  0.30.7   
+react                                   19.1.0    19.0.0   
+react-dom                               19.1.0    19.0.0   
+react-native                            0.81.5    0.79.5   
+react-native-gesture-handler            ~2.28.0   2.24.0   
+react-native-screens                    ~4.16.0   4.11.1   
+react-native-svg                        15.12.1   15.15.1  
+react-native-web                        ^0.21.0   0.20.0   
+react-native-webview                    13.15.0   13.13.5  
+@types/react                            ~19.1.10  19.0.14  
+typescript                              ~5.9.2    5.8.3    
+
+🔧 Patch version mismatches
+package                                 expected  found    
+@react-native-picker/picker             2.11.1    2.11.4   
+expo-blur                               ~15.0.8   15.0.7   
+expo-image-picker                       ~17.0.10  17.0.8   
+
+Changelogs:
+- expo-blur → https://github.com/expo/expo/blob/sdk-54/packages/expo-blur/CHANGELOG.md
+- expo-constants → https://github.com/expo/expo/blob/sdk-54/packages/expo-constants/CHANGELOG.md
+- expo-device → https://github.com/expo/expo/blob/sdk-54/packages/expo-device/CHANGELOG.md
+- expo-font → https://github.com/expo/expo/blob/sdk-54/packages/expo-font/CHANGELOG.md
+- expo-haptics → https://github.com/expo/expo/blob/sdk-54/packages/expo-haptics/CHANGELOG.md
+- expo-image → https://github.com/expo/expo/blob/sdk-54/packages/expo-image/CHANGELOG.md
+- expo-image-picker → https://github.com/expo/expo/blob/sdk-54/packages/expo-image-picker/CHANGELOG.md
+- expo-linking → https://github.com/expo/expo/blob/sdk-54/packages/expo-linking/CHANGELOG.md
+- expo-notifications → https://github.com/expo/expo/blob/sdk-54/packages/expo-notifications/CHANGELOG.md
+- expo-router → https://github.com/expo/expo/blob/sdk-54/packages/expo-router/CHANGELOG.md
+- expo-splash-screen → https://github.com/expo/expo/blob/sdk-54/packages/expo-splash-screen/CHANGELOG.md
+- expo-status-bar → https://github.com/expo/expo/blob/sdk-54/packages/expo-status-bar/CHANGELOG.md
+- expo-symbols → https://github.com/expo/expo/blob/sdk-54/packages/expo-symbols/CHANGELOG.md
+- expo-system-ui → https://github.com/expo/expo/blob/sdk-54/packages/expo-system-ui/CHANGELOG.md
+- expo-web-browser → https://github.com/expo/expo/blob/sdk-54/packages/expo-web-browser/CHANGELOG.md
+
+30 packages out of date.
+Advice:
+Use 'npx expo install --check' to review and upgrade your dependencies.
+To ignore specific packages, add them to "expo.install.exclude" in package.json. Learn more: https://expo.fyi/dependency-validation to automatically resolve these conflicts.
+     - Why to solve this issue and what will be achieved with this? Using incorrect package versions can lead to unexpected crashes or bugs. Fixing this ensures the app is more stable.
+     - Should Test frontend/backend/both after fix: frontend
+     - Is recurring issue? N
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: None explicitly mentioned in the summary, but the general pattern of features being partially implemented (e.g., a button exists but the screen behind it does not) has recurred.
+  - Recurrence count: N/A
+  - Status: N/A
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- **Backend**: FastAPI (Python)
+- **Frontend**: Expo (React Native) with TypeScript
+- **Database**: MongoDB
+- **Routing**:  (file-based)
+- **State Management**: React Context API ()
+- **API Client**: Axios
+- **Security**: JWT, Role-Based Access Control (RBAC)
+
+**key DB schema**
+  - The agent created several new backend models which imply new schemas, but did not explicitly list them. The next agent should inspect the  directory and the new route files (e.g., ) to understand the schemas for users, visitors, advanced passes, etc.
+
+**changes in tech stack**
+  - The following dependencies were added:
+    - **Backend**: , , 
+    - **Frontend**: , , , 
+
+**All files of reference**
+- : Modified multiple times to add and remove routers. The central point for backend API configuration.
+- : New screen, partially integrated with the backend. Needs to be completed.
+- , , , , : New files containing the bulk of the recently added backend logic.
+- : A document tracking progress on the 3-phase plan.
+- : A document outlining missing features, which is the source of the current multi-phase task.
+
+**Areas that need refactoring**:
+- : This file has commented-out imports and router registrations from the premature attempt to implement Phase 3. These should be cleaned up and properly implemented when Phase 3 begins.
+
+**key api endpoints**
+- : A new set of endpoints for CRUD operations on users.
+- : New endpoints for advanced pass features.
+- : New endpoints for pre-registration and visitor management.
+- : New endpoints for the emergency check-in system.
+- : A new endpoint to fetch sent notifications.
+
+**Critical Info for New Agent**
+The project is in the middle of a large, multi-phase feature implementation. The immediate and most critical task is to stabilize the frontend build. The Expo bundler is failing, and until this is resolved, no further progress can be made. Address **Issue 1** from the list above as the absolute first priority. Once the frontend is building successfully, proceed with the 3-phase plan, starting by testing the newly added backend features (Phase 1 & 2) before continuing with the frontend integration. Refer to  and  for context on the overall plan.
+
+**documents created in this job**
+  - /app/APP_REVIEW_AND_GAPS.md
+  - /app/PHASE_IMPLEMENTATION_STATUS.md
+  - /app/ERROR_RESOLUTION_REPORT.md
+
+**Last 10 User Messages and any pending HUMAN messages**
+- : (Pending) User reported a frontend build error.
+- : User requested a full debugging session. (Completed, but new errors arose).
+- : User approved moving to the next phase of implementation. (In Progress).
+- : User approved the agent's proposed 3-phase implementation plan. (In Progress).
+- : User selected the option to implement all high-priority missing features. (In Progress).
+- : User requested the agent to build out features identified in the app review.
+- : User requested a full application review for gaps. (Completed).
+- : User reported two new broken navigation links. (Completed via placeholder files).
+- : User confirmed the agent's initial plan.
+- The user is waiting for the agent to fix the current build error and then continue implementing the agreed-upon features.
+
+**Project Health Check:**
+- Broken: Frontend (Expo bundler is failing).
+- Mocked: Admin user management, visitor management, and emergency check-in features have backend routes but incomplete or placeholder frontend screens.
+
+**3rd Party Integrations**
+ -  (Python library)
+ -  (Python library)
+ -  (Python library)
+
+**Testing status**
+  - Testing agent used after significant changes: NO (Backend test was run, but *before* the most recent major additions and fixes).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created:  was updated but is now out of date with the current codebase.
+  - Known regressions: Unknown, as no regression testing has been performed since major backend changes were introduced.
+
+**Credentials to test flow:**
+None provided or required for the current tasks.
+
+**What agent forgot to execute**
+- The agent did not run a full backend regression test after adding a large number of new modules and dependencies.
+- The agent did not fully verify that the Expo build was successful before concluding the debugging session. It relied on backend                          STOPPED   Jan 13 05:02 PM
+code-server                      STOPPED   Not started
+expo                             STOPPED   Jan 13 05:02 PM
+mongodb                          RUNNING   pid 101, uptime 0:00:19
+nginx-code-proxy                 RUNNING   pid 97, uptime 0:00:19 instead of the Expo bundler's final output.
+- The agent did not address the NPM package version mismatch warnings identified in the Expo logs.
+</analysis>

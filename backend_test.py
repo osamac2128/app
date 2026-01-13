@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional
 class AISJBackendTester:
     def __init__(self):
         # Use the production URL from frontend/.env
-        self.base_url = "https://school-toolkit.preview.emergentagent.com/api"
+        self.base_url = "https://missing-links-fix-1.preview.emergentagent.com/api"
         self.admin_token = None
         self.staff_token = None
         self.auth_token = None

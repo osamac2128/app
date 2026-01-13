@@ -7,7 +7,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://school-toolkit.preview.emergentagent.com/api"
+BASE_URL = "https://missing-links-fix-1.preview.emergentagent.com/api"
 ADMIN_EMAIL = "osama.chaudhry@gmail.com"
 ADMIN_PASSWORD = "Test12345"
 
