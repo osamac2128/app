@@ -100,14 +100,40 @@ export default function UsersManagementScreen() {
       `Email: ${user.email}\nRole: ${user.role}\nStatus: ${user.status}`,
       [
         { text: 'Close', style: 'cancel' },
-        { text: 'Edit', onPress: () => {} },
+        { 
+          text: 'Edit', 
+          onPress: () => {
+            // TODO: Navigate to edit screen or show edit modal
+            Alert.alert('Coming Soon', 'User edit functionality');
+          }
+        },
         {
           text: user.status === 'active' ? 'Deactivate' : 'Activate',
           style: 'destructive',
-          onPress: () => {},
+          onPress: () => handleToggleUserStatus(user),
         },
       ]
     );
+  };
+
+  const handleToggleUserStatus = async (user: User) => {
+    const action = user.status === 'active' ? 'deactivate' : 'activate';
+    
+    try {
+      await axios.post(
+        `${API_URL}/api/admin/users/${user.id}/${action}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      Alert.alert('Success', `User ${action}d successfully`);
+      fetchUsers(); // Refresh list
+    } catch (error: any) {
+      console.error(`Error ${action}ing user:`, error);
+      Alert.alert('Error', error.response?.data?.detail || `Failed to ${action} user`);
+    }
   };
 
   const getRoleColor = (role: string) => {
