@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import FastAPI, APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+import socketio
 import logging
 from pathlib import Path
 
@@ -10,9 +11,10 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.database import db
 from app.core.exceptions import AppException
+from app.core.websocket import sio
 
 # Import routes
-from routes import auth, digital_ids, passes, emergency, notifications, visitors, admin, user_management, pass_advanced, visitor_enhanced, emergency_checkin
+from routes import auth, digital_ids, passes, emergency, notifications, visitors, admin, user_management, pass_advanced, visitor_enhanced, emergency_checkin, push_notifications, realtime
 
 # Configure logging
 logging.basicConfig(
@@ -104,9 +106,14 @@ api_router.include_router(visitors.router)
 api_router.include_router(visitor_enhanced.router)
 api_router.include_router(admin.router)
 api_router.include_router(user_management.router)
+api_router.include_router(push_notifications.router)
+api_router.include_router(realtime.router)
 
 # Include the router in the main app
 app.include_router(api_router)
+
+# Create Socket.IO ASGI app wrapper
+socket_app = socketio.ASGIApp(sio, app)
 
 # CORS middleware
 app.add_middleware(
