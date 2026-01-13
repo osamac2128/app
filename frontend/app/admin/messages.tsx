@@ -10,14 +10,12 @@ import {
   RefreshControl,
   TextInput,
   Modal,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, API_URL } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Notification {
   _id: string;
@@ -652,24 +650,125 @@ export default function AdminMessagesScreen() {
                 </View>
               )}
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={scheduledDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  minimumDate={new Date()}
-                />
-              )}
+              {/* Custom Date Picker Modal */}
+              <Modal visible={showDatePicker} transparent animationType="fade">
+                <View style={styles.pickerOverlay}>
+                  <View style={styles.pickerModal}>
+                    <Text style={styles.pickerTitle}>Select Date</Text>
+                    <View style={styles.pickerInputRow}>
+                      <View style={styles.pickerInputGroup}>
+                        <Text style={styles.pickerInputLabel}>Month</Text>
+                        <TextInput
+                          style={styles.pickerInput}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          value={String(scheduledDate.getMonth() + 1)}
+                          onChangeText={(text) => {
+                            const month = parseInt(text) || 1;
+                            if (month >= 1 && month <= 12) {
+                              const newDate = new Date(scheduledDate);
+                              newDate.setMonth(month - 1);
+                              setScheduledDate(newDate);
+                            }
+                          }}
+                        />
+                      </View>
+                      <View style={styles.pickerInputGroup}>
+                        <Text style={styles.pickerInputLabel}>Day</Text>
+                        <TextInput
+                          style={styles.pickerInput}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          value={String(scheduledDate.getDate())}
+                          onChangeText={(text) => {
+                            const day = parseInt(text) || 1;
+                            if (day >= 1 && day <= 31) {
+                              const newDate = new Date(scheduledDate);
+                              newDate.setDate(day);
+                              setScheduledDate(newDate);
+                            }
+                          }}
+                        />
+                      </View>
+                      <View style={styles.pickerInputGroup}>
+                        <Text style={styles.pickerInputLabel}>Year</Text>
+                        <TextInput
+                          style={[styles.pickerInput, { width: 80 }]}
+                          keyboardType="number-pad"
+                          maxLength={4}
+                          value={String(scheduledDate.getFullYear())}
+                          onChangeText={(text) => {
+                            const year = parseInt(text) || new Date().getFullYear();
+                            if (year >= 2024) {
+                              const newDate = new Date(scheduledDate);
+                              newDate.setFullYear(year);
+                              setScheduledDate(newDate);
+                            }
+                          }}
+                        />
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.pickerDoneBtn}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.pickerDoneBtnText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
 
-              {showTimePicker && (
-                <DateTimePicker
-                  value={scheduledDate}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleTimeChange}
-                />
-              )}
+              {/* Custom Time Picker Modal */}
+              <Modal visible={showTimePicker} transparent animationType="fade">
+                <View style={styles.pickerOverlay}>
+                  <View style={styles.pickerModal}>
+                    <Text style={styles.pickerTitle}>Select Time</Text>
+                    <View style={styles.pickerInputRow}>
+                      <View style={styles.pickerInputGroup}>
+                        <Text style={styles.pickerInputLabel}>Hour</Text>
+                        <TextInput
+                          style={styles.pickerInput}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          value={String(scheduledDate.getHours()).padStart(2, '0')}
+                          onChangeText={(text) => {
+                            const hour = parseInt(text);
+                            if (!isNaN(hour) && hour >= 0 && hour <= 23) {
+                              const newDate = new Date(scheduledDate);
+                              newDate.setHours(hour);
+                              setScheduledDate(newDate);
+                            }
+                          }}
+                        />
+                      </View>
+                      <Text style={styles.pickerColon}>:</Text>
+                      <View style={styles.pickerInputGroup}>
+                        <Text style={styles.pickerInputLabel}>Minute</Text>
+                        <TextInput
+                          style={styles.pickerInput}
+                          keyboardType="number-pad"
+                          maxLength={2}
+                          value={String(scheduledDate.getMinutes()).padStart(2, '0')}
+                          onChangeText={(text) => {
+                            const minute = parseInt(text);
+                            if (!isNaN(minute) && minute >= 0 && minute <= 59) {
+                              const newDate = new Date(scheduledDate);
+                              newDate.setMinutes(minute);
+                              setScheduledDate(newDate);
+                            }
+                          }}
+                        />
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.pickerDoneBtn}
+                      onPress={() => setShowTimePicker(false)}
+                    >
+                      <Text style={styles.pickerDoneBtnText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
             </View>
 
             <TouchableOpacity
@@ -1200,5 +1299,71 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9CA3AF',
     marginTop: 4,
+  },
+  // Custom picker styles
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 340,
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E3A5F',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  pickerInputRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    gap: 12,
+  },
+  pickerInputGroup: {
+    alignItems: 'center',
+  },
+  pickerInputLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  pickerInput: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    textAlign: 'center',
+    width: 60,
+  },
+  pickerColon: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E3A5F',
+    marginBottom: 8,
+  },
+  pickerDoneBtn: {
+    backgroundColor: '#2E5A8F',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  pickerDoneBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
