@@ -10,31 +10,54 @@ import {
   RefreshControl,
   TextInput,
   Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, API_URL } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Notification {
   _id: string;
   title: string;
-  body: string; // Backend uses "body" not "message"
+  body: string;
   type: string;
-  priority?: string; // Optional as backend doesn't have this field
+  priority?: string;
   created_at: string;
+  scheduled_for?: string;
+  status?: string;
   recipient_count?: number;
+}
+
+interface NotificationTemplate {
+  _id: string;
+  name: string;
+  title: string;
+  body: string;
+  type: string;
 }
 
 export default function AdminMessagesScreen() {
   const { token } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [scheduledNotifications, setScheduledNotifications] = useState<Notification[]>([]);
+  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showComposeModal, setShowComposeModal] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [showScheduledModal, setShowScheduledModal] = useState(false);
   const [sending, setSending] = useState(false);
+  const [activeTab, setActiveTab] = useState<'sent' | 'scheduled'>('sent');
+
+  // Scheduling state
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -60,13 +83,38 @@ export default function AdminMessagesScreen() {
     }
   };
 
+  const fetchScheduledNotifications = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/notifications/scheduled`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setScheduledNotifications(response.data);
+    } catch (error: any) {
+      console.error('Error fetching scheduled notifications:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/notifications/templates`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTemplates(response.data);
+    } catch (error: any) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
+    fetchScheduledNotifications();
+    fetchTemplates();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchNotifications();
+    fetchScheduledNotifications();
   };
 
   const handleCompose = () => {
@@ -77,7 +125,65 @@ export default function AdminMessagesScreen() {
       priority: 'normal',
       target: 'all',
     });
+    setIsScheduled(false);
+    setScheduledDate(new Date(Date.now() + 60 * 60 * 1000)); // Default to 1 hour from now
     setShowComposeModal(true);
+  };
+
+  const applyTemplate = (template: NotificationTemplate) => {
+    setFormData({
+      ...formData,
+      title: template.title,
+      message: template.body,
+      type: template.type,
+    });
+    setShowTemplatesModal(false);
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const newDate = new Date(scheduledDate);
+      newDate.setFullYear(selectedDate.getFullYear());
+      newDate.setMonth(selectedDate.getMonth());
+      newDate.setDate(selectedDate.getDate());
+      setScheduledDate(newDate);
+    }
+  };
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      const newDate = new Date(scheduledDate);
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
+      setScheduledDate(newDate);
+    }
+  };
+
+  const cancelScheduledNotification = async (notificationId: string) => {
+    Alert.alert(
+      'Cancel Scheduled Message',
+      'Are you sure you want to cancel this scheduled message?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.delete(`${API_URL}/api/notifications/scheduled/${notificationId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              Alert.alert('Success', 'Scheduled message cancelled');
+              fetchScheduledNotifications();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to cancel scheduled message');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSend = async () => {
@@ -86,13 +192,18 @@ export default function AdminMessagesScreen() {
       return;
     }
 
+    // Validate scheduled time
+    if (isScheduled && scheduledDate <= new Date()) {
+      Alert.alert('Error', 'Scheduled time must be in the future');
+      return;
+    }
+
     setSending(true);
-    
+
     try {
       // Map frontend target to backend target_roles
       let target_roles = null;
       if (formData.target !== 'all') {
-        // Map target to role format expected by backend
         const roleMap: any = {
           'students': 'student',
           'parents': 'parent',
@@ -109,36 +220,69 @@ export default function AdminMessagesScreen() {
         'info': 'general'
       };
 
-      const notificationData = {
-        title: formData.title,
-        body: formData.message, // Backend uses "body" not "message"
-        type: typeMap[formData.type],
-        target_roles: target_roles,
-        created_by: '' // Will be set by backend from token
-      };
+      if (isScheduled) {
+        // Schedule the notification
+        const scheduledData = {
+          title: formData.title,
+          body: formData.message,
+          type: typeMap[formData.type],
+          target_roles: target_roles,
+          priority: formData.priority,
+          scheduled_for: scheduledDate.toISOString(),
+        };
 
-      const response = await axios.post(
-        `${API_URL}/api/notifications/send`,
-        notificationData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.status === 200) {
-        Alert.alert(
-          'Message Sent',
-          `Your ${formData.type} has been sent to ${formData.target === 'all' ? 'all users' : formData.target}.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setShowComposeModal(false);
-                fetchNotifications();
-              },
-            },
-          ]
+        const response = await axios.post(
+          `${API_URL}/api/notifications/schedule`,
+          scheduledData,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+
+        if (response.status === 200) {
+          Alert.alert(
+            'Message Scheduled',
+            `Your message will be sent on ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString()}.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  setShowComposeModal(false);
+                  fetchScheduledNotifications();
+                },
+              },
+            ]
+          );
+        }
+      } else {
+        // Send immediately
+        const notificationData = {
+          title: formData.title,
+          body: formData.message,
+          type: typeMap[formData.type],
+          target_roles: target_roles,
+          created_by: ''
+        };
+
+        const response = await axios.post(
+          `${API_URL}/api/notifications/send`,
+          notificationData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.status === 200) {
+          Alert.alert(
+            'Message Sent',
+            `Your ${formData.type} has been sent to ${formData.target === 'all' ? 'all users' : formData.target}.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  setShowComposeModal(false);
+                  fetchNotifications();
+                },
+              },
+            ]
+          );
+        }
       }
     } catch (error: any) {
       console.error('Error sending notification:', error);
@@ -207,12 +351,71 @@ export default function AdminMessagesScreen() {
         }
       >
         <View style={styles.statsBar}>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{notifications.length}</Text>
-            <Text style={styles.statLabel}>Total Messages</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{notifications.length}</Text>
+              <Text style={styles.statLabel}>Sent</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={[styles.statValue, { color: '#F59E0B' }]}>{scheduledNotifications.length}</Text>
+              <Text style={styles.statLabel}>Scheduled</Text>
+            </View>
           </View>
         </View>
 
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'sent' && styles.tabActive]}
+            onPress={() => setActiveTab('sent')}
+          >
+            <Ionicons name="checkmark-done" size={18} color={activeTab === 'sent' ? '#1E3A5F' : '#6B7280'} />
+            <Text style={[styles.tabText, activeTab === 'sent' && styles.tabTextActive]}>Sent</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'scheduled' && styles.tabActive]}
+            onPress={() => setActiveTab('scheduled')}
+          >
+            <Ionicons name="time" size={18} color={activeTab === 'scheduled' ? '#1E3A5F' : '#6B7280'} />
+            <Text style={[styles.tabText, activeTab === 'scheduled' && styles.tabTextActive]}>Scheduled</Text>
+          </TouchableOpacity>
+        </View>
+
+        {activeTab === 'scheduled' ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Scheduled Messages</Text>
+            {scheduledNotifications.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="calendar-outline" size={60} color="#9CA3AF" />
+                <Text style={styles.emptyTitle}>No Scheduled Messages</Text>
+                <Text style={styles.emptyText}>Schedule a message to send later</Text>
+              </View>
+            ) : (
+              scheduledNotifications.map((notification) => (
+                <View key={notification._id} style={styles.messageCard}>
+                  <View style={styles.messageHeader}>
+                    <View style={[styles.typeIcon, { backgroundColor: '#FEF3C7' }]}>
+                      <Ionicons name="time" size={24} color="#F59E0B" />
+                    </View>
+                    <View style={styles.messageInfo}>
+                      <Text style={styles.messageTitle}>{notification.title}</Text>
+                      <Text style={styles.scheduledTime}>
+                        Scheduled: {new Date(notification.scheduled_for!).toLocaleString()}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.cancelBtn}
+                      onPress={() => cancelScheduledNotification(notification._id)}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.messageContent}>{notification.body}</Text>
+                </View>
+              ))
+            )}
+          </View>
+        ) : (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Messages</Text>
           {notifications.length === 0 ? (
@@ -278,6 +481,7 @@ export default function AdminMessagesScreen() {
             ))
           )}
         </View>
+        )}
       </ScrollView>
 
       {/* Compose Modal */}
@@ -399,6 +603,75 @@ export default function AdminMessagesScreen() {
               />
             </View>
 
+            {/* Use Template Button */}
+            <TouchableOpacity
+              style={styles.templateBtn}
+              onPress={() => setShowTemplatesModal(true)}
+            >
+              <Ionicons name="document-text" size={20} color="#2E5A8F" />
+              <Text style={styles.templateBtnText}>Use a Template</Text>
+            </TouchableOpacity>
+
+            {/* Schedule Toggle */}
+            <View style={styles.formGroup}>
+              <TouchableOpacity
+                style={styles.scheduleToggle}
+                onPress={() => setIsScheduled(!isScheduled)}
+              >
+                <View style={styles.scheduleToggleLeft}>
+                  <Ionicons
+                    name={isScheduled ? 'checkbox' : 'square-outline'}
+                    size={24}
+                    color={isScheduled ? '#2E5A8F' : '#9CA3AF'}
+                  />
+                  <Text style={styles.scheduleToggleText}>Schedule for later</Text>
+                </View>
+              </TouchableOpacity>
+
+              {isScheduled && (
+                <View style={styles.schedulePickers}>
+                  <TouchableOpacity
+                    style={styles.datePickerBtn}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Ionicons name="calendar" size={20} color="#2E5A8F" />
+                    <Text style={styles.datePickerText}>
+                      {scheduledDate.toLocaleDateString()}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.datePickerBtn}
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Ionicons name="time" size={20} color="#2E5A8F" />
+                    <Text style={styles.datePickerText}>
+                      {scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={scheduledDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
+
+              {showTimePicker && (
+                <DateTimePicker
+                  value={scheduledDate}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleTimeChange}
+                />
+              )}
+            </View>
+
             <TouchableOpacity
               style={[styles.sendButton, sending && styles.sendButtonDisabled]}
               onPress={handleSend}
@@ -408,11 +681,48 @@ export default function AdminMessagesScreen() {
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Ionicons name="send" size={20} color="#FFFFFF" />
-                  <Text style={styles.sendButtonText}>Send Message</Text>
+                  <Ionicons name={isScheduled ? 'calendar' : 'send'} size={20} color="#FFFFFF" />
+                  <Text style={styles.sendButtonText}>
+                    {isScheduled ? 'Schedule Message' : 'Send Message'}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Templates Modal */}
+      <Modal visible={showTemplatesModal} animationType="slide" transparent={false}>
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowTemplatesModal(false)}>
+              <Ionicons name="close" size={28} color="#1E3A5F" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Message Templates</Text>
+            <View style={{ width: 28 }} />
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            {templates.map((template) => (
+              <TouchableOpacity
+                key={template._id}
+                style={styles.templateCard}
+                onPress={() => applyTemplate(template)}
+              >
+                <View style={styles.templateCardIcon}>
+                  <Ionicons name="document-text" size={24} color="#2E5A8F" />
+                </View>
+                <View style={styles.templateCardContent}>
+                  <Text style={styles.templateCardName}>{template.name}</Text>
+                  <Text style={styles.templateCardTitle}>{template.title}</Text>
+                  <Text style={styles.templateCardBody} numberOfLines={2}>
+                    {template.body}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -743,5 +1053,152 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Stats row for multiple stats
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  // Tabs
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  tabActive: {
+    backgroundColor: '#EBF4FF',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  tabTextActive: {
+    color: '#1E3A5F',
+  },
+  // Scheduled time
+  scheduledTime: {
+    fontSize: 12,
+    color: '#F59E0B',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  cancelBtn: {
+    padding: 4,
+  },
+  // Schedule toggle
+  scheduleToggle: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  scheduleToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  scheduleToggleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  schedulePickers: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  datePickerBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    gap: 8,
+  },
+  datePickerText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  // Template button in compose
+  templateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EBF4FF',
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginBottom: 24,
+  },
+  templateBtnText: {
+    fontSize: 14,
+    color: '#2E5A8F',
+    fontWeight: '600',
+  },
+  // Template cards
+  templateCard: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  templateCardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  templateCardContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  templateCardName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1E3A5F',
+  },
+  templateCardTitle: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  templateCardBody: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 4,
   },
 });

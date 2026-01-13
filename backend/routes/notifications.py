@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List, Optional
 from datetime import datetime
+from pydantic import BaseModel
 from app.core.database import get_database
 from utils.dependencies import get_current_active_user, require_role
 from models.notifications import (
@@ -11,6 +12,15 @@ from models.users import UserRole
 from bson import ObjectId
 
 router = APIRouter(prefix='/notifications', tags=['Notifications'])
+
+
+class ScheduledNotificationCreate(BaseModel):
+    title: str
+    body: str
+    type: str = 'announcement'
+    target_roles: Optional[List[str]] = None
+    scheduled_for: datetime
+    priority: str = 'normal'
 
 @router.post('/send', response_model=Notification)
 async def send_notification(
@@ -103,13 +113,13 @@ async def mark_read(
 ):
     """Mark a notification as read."""
     user_id = str(current_user['_id'])
-    
+
     # Check if receipt exists
     receipt = await db.notification_receipts.find_one({
         'notification_id': notification_id,
         'user_id': user_id
     })
-    
+
     if receipt:
         await db.notification_receipts.update_one(
             {'_id': receipt['_id']},
@@ -126,5 +136,140 @@ async def mark_read(
             'created_at': datetime.utcnow()
         }
         await db.notification_receipts.insert_one(new_receipt)
-        
+
     return {"status": "success"}
+
+
+@router.post('/schedule')
+async def schedule_notification(
+    notification_data: ScheduledNotificationCreate,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Schedule a notification for future delivery."""
+
+    # Validate scheduled time is in the future
+    if notification_data.scheduled_for <= datetime.utcnow():
+        raise HTTPException(
+            status_code=400,
+            detail="Scheduled time must be in the future"
+        )
+
+    new_notification = {
+        'title': notification_data.title,
+        'body': notification_data.body,
+        'type': notification_data.type,
+        'target_roles': notification_data.target_roles,
+        'priority': notification_data.priority,
+        'scheduled_for': notification_data.scheduled_for,
+        'status': 'scheduled',
+        'created_by': str(current_user['_id']),
+        'created_at': datetime.utcnow(),
+        'updated_at': datetime.utcnow()
+    }
+
+    result = await db.notifications.insert_one(new_notification)
+    new_notification['_id'] = str(result.inserted_id)
+
+    return {
+        'message': 'Notification scheduled successfully',
+        'notification': new_notification
+    }
+
+
+@router.get('/scheduled')
+async def get_scheduled_notifications(
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Get all scheduled notifications."""
+    user_id = str(current_user['_id'])
+
+    scheduled = await db.notifications.find({
+        'status': 'scheduled',
+        'scheduled_for': {'$gte': datetime.utcnow()}
+    }).sort('scheduled_for', 1).to_list(length=100)
+
+    for n in scheduled:
+        n['_id'] = str(n['_id'])
+
+    return scheduled
+
+
+@router.delete('/scheduled/{notification_id}')
+async def cancel_scheduled_notification(
+    notification_id: str,
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Cancel a scheduled notification."""
+
+    notification = await db.notifications.find_one({
+        '_id': ObjectId(notification_id),
+        'status': 'scheduled'
+    })
+
+    if not notification:
+        raise HTTPException(status_code=404, detail="Scheduled notification not found")
+
+    await db.notifications.update_one(
+        {'_id': ObjectId(notification_id)},
+        {'$set': {'status': 'cancelled', 'updated_at': datetime.utcnow()}}
+    )
+
+    return {'message': 'Scheduled notification cancelled'}
+
+
+@router.get('/templates')
+async def get_notification_templates(
+    current_user: dict = Depends(require_role(UserRole.ADMIN, UserRole.STAFF)),
+    db = Depends(get_database)
+):
+    """(Admin/Staff) Get notification templates."""
+
+    templates = await db.notification_templates.find({}).to_list(length=100)
+
+    for t in templates:
+        t['_id'] = str(t['_id'])
+
+    # If no templates exist, return default templates
+    if not templates:
+        templates = [
+            {
+                '_id': 'default_1',
+                'name': 'School Closure',
+                'title': 'School Closure Notice',
+                'body': 'Due to [REASON], school will be closed on [DATE]. Please stay safe and check for updates.',
+                'type': 'announcement'
+            },
+            {
+                '_id': 'default_2',
+                'name': 'Event Reminder',
+                'title': 'Upcoming Event Reminder',
+                'body': 'This is a reminder that [EVENT] will take place on [DATE] at [TIME]. Please mark your calendars.',
+                'type': 'reminder'
+            },
+            {
+                '_id': 'default_3',
+                'name': 'Early Dismissal',
+                'title': 'Early Dismissal Notice',
+                'body': 'Students will be dismissed early today at [TIME] due to [REASON]. Please arrange for pickup accordingly.',
+                'type': 'announcement'
+            },
+            {
+                '_id': 'default_4',
+                'name': 'General Announcement',
+                'title': 'Important Announcement',
+                'body': '[YOUR MESSAGE HERE]',
+                'type': 'general'
+            },
+            {
+                '_id': 'default_5',
+                'name': 'Parent Meeting',
+                'title': 'Parent-Teacher Meeting',
+                'body': 'Parent-Teacher meetings are scheduled for [DATE]. Please sign up for your preferred time slot through the school portal.',
+                'type': 'reminder'
+            }
+        ]
+
+    return templates
